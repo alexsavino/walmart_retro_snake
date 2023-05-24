@@ -10,9 +10,11 @@ sys.stdout = open('output.log', 'w')
 pyg.init()
 width, height = 640, 480
 screen = pyg.display.set_mode((width,height))
+gen_col = 'white'  # gen_option_sc_txt_color
+
 title_font = pyg.font.Font(None,80)
 subtitle_font = pyg.font.Font(None,30)
-
+SPACE_font = pyg.font.Font(None,35)
 
 
 # INITIALIZING SCREENS...
@@ -21,24 +23,69 @@ option_screen = False
 game_screen = False
 final_screen = False
 PREVIOUS_PAGE = title_screen
-TEST_SCREEN = True 
 
+
+# FUNCTIONS THAT RELATE THE SCREENS...
+def back_arrow():
+    global vertices
+    arrow_color = 'red'
+    x = 3
+    y = 5
+    dilation = 5
+    back_arrow_vertices = list(dilation * np.array([(x, y), (x + 3, y + 2.5), (x + 3, y + 1.25), 
+                (x + 7, y + 1.25), (x + 7, y - 1.25), (x + 3, y - 1.25), (x + 3, y - 2.5)]))
+    vertices = pyg.draw.polygon(screen, arrow_color, back_arrow_vertices, width=2)
+    return back_arrow_vertices
+
+def is_inside_arrow(point,arrow_vertices):
+    x, y = point
+    n = len(arrow_vertices)
+    inside = False
+    p1x, p1y = arrow_vertices[0]
+    for i in range(n + 1):
+        p2x, p2y = arrow_vertices[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        x_intersect = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                        if p1x == p2x or x <= x_intersect:
+                            inside = not inside
+        p1x, p1y = p2x, p2y
+    return inside
 
 # CREATING SCREEN CONDITIONS...
 # PRIMARY GAME LOOP...
 while True:
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    SPACE_visible = True
+    SPACE_timer, SPACE_interval = 0, 1000
+
     while title_screen:
         pyg.display.set_caption("Snake Game")
         screen.fill('black')
 
-        title = title_font.render("SNAKE GAME", True, 'white')
-        subtitle = subtitle_font.render("PRESS 'SPACE' TO START", True, 'white')
-        title_rect = title.get_rect(center=(width//2, height//2-20))
-        subtitle_rect = subtitle.get_rect(center=(width//2, height//2 + 25))
+        title_title = title_font.render("SNAKE GAME", True, gen_col)
+        subtitle = subtitle_font.render("PRESS                TO START", True, gen_col)
+        title_height = height//2-20
+        subtitle_height = height//2 + 25
+        title_rect = title_title.get_rect(center=(width//2, title_height))
+        subtitle_rect = subtitle.get_rect(center=(width//2, subtitle_height))
 
-        screen.blit(title, title_rect)
+        screen.blit(title_title, title_rect)
         screen.blit(subtitle, subtitle_rect)
+
+        # TO MAKE THE 'SPACE' BLINK...
+        SPACE_timer += 1
+        if SPACE_timer >= SPACE_interval:
+            SPACE_timer = 0
+            SPACE_visible = not SPACE_visible
+        
+        if SPACE_visible:
+            SPACE_x = width//2-56
+            SPACE_surface = SPACE_font.render("SPACE", True, gen_col)
+            SPACE_rect = SPACE_surface.get_rect(topleft=(SPACE_x, subtitle_height-13))
+            screen.blit(SPACE_surface, SPACE_rect)
 
         for event in pyg.event.get():
             if (event.type==KEYDOWN) and (event.key==K_SPACE):
@@ -49,36 +96,6 @@ while True:
 
 
     #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    gen_col = 'white'  # gen_option_sc_txt_color
-
-    def back_arrow():
-        global vertices
-        arrow_color = 'red'
-        x = 3
-        y = 5
-        dilation = 5
-        back_arrow_vertices = list(dilation * np.array([(x, y), (x + 3, y + 2.5), (x + 3, y + 1.25), 
-                    (x + 7, y + 1.25), (x + 7, y - 1.25), (x + 3, y - 1.25), (x + 3, y - 2.5)]))
-        vertices = pyg.draw.polygon(screen, arrow_color, back_arrow_vertices, width=2)
-        return back_arrow_vertices
-
-    def is_inside_arrow(point,arrow_vertices):
-        x, y = point
-        n = len(arrow_vertices)
-        inside = False
-        p1x, p1y = arrow_vertices[0]
-        for i in range(n + 1):
-            p2x, p2y = arrow_vertices[i % n]
-            if y > min(p1y, p2y):
-                if y <= max(p1y, p2y):
-                    if x <= max(p1x, p2x):
-                        if p1y != p2y:
-                            x_intersect = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                            if p1x == p2x or x <= x_intersect:
-                                inside = not inside
-            p1x, p1y = p2x, p2y
-        return inside
-
     cursor_visible = True
     cursor_timer, cursor_interval = 0, 600
 
@@ -89,32 +106,42 @@ while True:
 
     while option_screen:
         screen.fill('black')
-        pyg.display.set_caption("___'s Game Settings")
+        pyg.display.set_caption("Game Settings")
+
 
         # TO CREATE BACK-BUTTON!
         back_arrow_polygon = back_arrow()
+
+        # SCREEN TITLE...
+        option_title_font = pyg.font.Font(None,50)
+        option_title = option_title_font.render("GAME SETTINGS",True,gen_col)
+        option_title_rect = option_title.get_rect(center=(width//2,46))
+
+        screen.blit(option_title, option_title_rect)
+
 
         # TO RECORD THE USER'S NAME... 
         for event in pyg.event.get():
             if event.type == KEYDOWN:
                 if event.key == K_BACKSPACE:
                     username = username[:-1]
+                # THIS COULD USE SOME CLEANING UP!!
                 elif event.key == K_RETURN:
                     username = username.rstrip()
                     pyg.display.set_caption("{}'s Game Settings".format(username))
+                # THIS COULD USE SOME CLEANING UP!!
                 elif event.unicode.isalpha() or event.unicode.isspace():
                     username += event.unicode
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
                 mouse_pos = pyg.mouse.get_pos()
                 if is_inside_arrow(mouse_pos, back_arrow_polygon):
-                    # HERE HERE HERE HERE HERE 
                     title_screen = True
                     option_screen = False
                     break
 
 
         # TO POSITION BOTH QUESTION / ANSWER...
-        q_top, q_left = 75, 75
+        q_top, q_left = 100, 75
         q_surface = q_font.render(name_question, True, gen_col)
         q_rect = q_surface.get_rect(topleft=(q_left, q_top))
         screen.blit(q_surface, q_rect)
@@ -123,6 +150,7 @@ while True:
         a_surface = a_font.render(username, True, gen_col)
         a_rect = a_surface.get_rect(topleft=(a_left, a_top))
         screen.blit(a_surface, a_rect)
+
 
         # TO MAKE THE CURSOR BLINK...
         cursor_timer += 1
@@ -135,6 +163,9 @@ while True:
             cursor_surface = a_font.render("_", True, gen_col)
             cursor_rect = cursor_surface.get_rect(topleft=(cursor_x, a_top))
             screen.blit(cursor_surface, cursor_rect)
+
+
+
 
         pyg.display.flip()
 
