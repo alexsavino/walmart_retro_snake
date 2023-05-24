@@ -21,6 +21,7 @@ option_screen = False
 game_screen = False
 final_screen = False
 PREVIOUS_PAGE = title_screen
+TEST_SCREEN = True 
 
 
 # CREATING SCREEN CONDITIONS...
