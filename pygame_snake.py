@@ -12,17 +12,13 @@ width, height = 640, 480
 screen = pyg.display.set_mode((width,height))
 gen_col = 'white'  # gen_option_sc_txt_color
 
-title_font = pyg.font.Font(None,80)
-subtitle_font = pyg.font.Font(None,30)
-SPACE_font = pyg.font.Font(None,35)
-
 
 # INITIALIZING SCREENS...
 title_screen = True
 option_screen = False
 game_screen = False
 final_screen = False
-PREVIOUS_PAGE = title_screen
+#PREVIOUS_PAGE = title_screen # is this format / connection builder im rly gonna use?
 
 
 # FUNCTIONS THAT RELATE THE SCREENS...
@@ -54,12 +50,16 @@ def is_inside_arrow(point,arrow_vertices):
         p1x, p1y = p2x, p2y
     return inside
 
+
 # CREATING SCREEN CONDITIONS...
 # PRIMARY GAME LOOP...
 while True:
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    SPACE_visible = True
-    SPACE_timer, SPACE_interval = 0, 1000
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    SPACE_timer = 0
+
+    title_font = pyg.font.Font(None,80)
+    subtitle_font = pyg.font.Font(None,30)
+    SPACE_font = pyg.font.Font(None,35)
 
     while title_screen:
         pyg.display.set_caption("Snake Game")
@@ -76,13 +76,17 @@ while True:
         screen.blit(subtitle, subtitle_rect)
 
         # TO MAKE THE 'SPACE' BLINK...
+        SPACE_visible = True
         SPACE_timer += 1
-        if SPACE_timer >= SPACE_interval:
-            SPACE_timer = 0
+        time_not_visible = 700
+        time_visible = 2000
+        if SPACE_timer < time_not_visible:
             SPACE_visible = not SPACE_visible
-        
+        elif SPACE_timer >= time_visible:
+            SPACE_timer = 0
+    
         if SPACE_visible:
-            SPACE_x = width//2-56
+            SPACE_x = width//2-54
             SPACE_surface = SPACE_font.render("SPACE", True, gen_col)
             SPACE_rect = SPACE_surface.get_rect(topleft=(SPACE_x, subtitle_height-13))
             screen.blit(SPACE_surface, SPACE_rect)
@@ -95,14 +99,22 @@ while True:
         pyg.display.flip()
 
 
-    #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     cursor_visible = True
     cursor_timer, cursor_interval = 0, 600
 
     q_font = pyg.font.Font(None, 25)
     a_font = pyg.font.Font(None, 22)
+
+    # LIST OF OPTION QUESTIONS...
     name_question = "1. WHAT'S YOUR NAME?: "
     username = ""
+
+    snake_color_question = "2. SNAKE COLOR?: "
+    pellet_color_question = "3. PELLET COLOR?: "
+    board_color_question = "4. BOARD COLOR?: "
+
+    space_between_questions = 88
 
     while option_screen:
         screen.fill('black')
@@ -114,12 +126,14 @@ while True:
 
         # SCREEN TITLE...
         option_title_font = pyg.font.Font(None,50)
-        option_title = option_title_font.render("GAME SETTINGS",True,gen_col)
-        option_title_rect = option_title.get_rect(center=(width//2,46))
-
+        option_title = option_title_font.render("GAME SETTINGS", True, gen_col)
+        option_title_height = 46
+        option_title_rect = option_title.get_rect(center=(width//2,option_title_height))
         screen.blit(option_title, option_title_rect)
 
 
+        #------------------------------------------------------------------------------------------------------------------
+        # PREFERENCE 1: NAME
         # TO RECORD THE USER'S NAME... 
         for event in pyg.event.get():
             if event.type == KEYDOWN:
@@ -130,6 +144,9 @@ while True:
                     username = username.rstrip()
                     pyg.display.set_caption("{}'s Game Settings".format(username))
                 # THIS COULD USE SOME CLEANING UP!!
+                # 1. can't let users enter tabs -- results in something weird
+                # 2. should be a reasonable length check
+                # 3. 
                 elif event.unicode.isalpha() or event.unicode.isspace():
                     username += event.unicode
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
@@ -141,7 +158,7 @@ while True:
 
 
         # TO POSITION BOTH QUESTION / ANSWER...
-        q_top, q_left = 100, 75
+        q_left, q_top = 75, 100
         q_surface = q_font.render(name_question, True, gen_col)
         q_rect = q_surface.get_rect(topleft=(q_left, q_top))
         screen.blit(q_surface, q_rect)
@@ -165,7 +182,26 @@ while True:
             screen.blit(cursor_surface, cursor_rect)
 
 
+        #------------------------------------------------------------------------------------------------------------------
+        # PREFERENCE 2: SNAKE COLOR
+        snake_q_left, snake_q_top = q_left, (q_top+space_between_questions)
+        snake_q_surface = q_font.render(snake_color_question, True, gen_col)
+        snake_q_rect = snake_q_surface.get_rect(topleft=(snake_q_left,snake_q_top))
+        screen.blit(snake_q_surface,snake_q_rect)
 
+        #------------------------------------------------------------------------------------------------------------------
+        # PREFERENCE 4: PELLET COLOR
+        pellet_q_left, pellet_q_top = q_left, (snake_q_top+space_between_questions)
+        pellet_q_surface = q_font.render(snake_color_question, True, gen_col)
+        pellet_q_rect = pellet_q_surface.get_rect(topleft=(pellet_q_left,pellet_q_top))
+        screen.blit(pellet_q_surface,pellet_q_rect)
+
+        #------------------------------------------------------------------------------------------------------------------
+        # PREFERENCE 3: BOARD COLOR
+        board_q_left, board_q_top = q_left, (pellet_q_top+space_between_questions)
+        board_q_surface = q_font.render(board_color_question, True, gen_col)
+        board_q_rect = board_q_surface.get_rect(topleft=(board_q_left,board_q_top))
+        screen.blit(board_q_surface,board_q_rect)
 
         pyg.display.flip()
 
@@ -173,9 +209,11 @@ while True:
 
 
 
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #while game_screen():
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #while end_screen():
 
 pyg.quit()
+
+# %%
