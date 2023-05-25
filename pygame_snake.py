@@ -23,15 +23,24 @@ final_screen = False
 
 # FUNCTIONS THAT RELATE THE SCREENS...
 def back_arrow():
-    global vertices
     arrow_color = 'red'
     x = 3
     y = 5
     dilation = 5
-    back_arrow_vertices = list(dilation * np.array([(x, y), (x + 3, y + 2.5), (x + 3, y + 1.25), 
-                (x + 7, y + 1.25), (x + 7, y - 1.25), (x + 3, y - 1.25), (x + 3, y - 2.5)]))
-    vertices = pyg.draw.polygon(screen, arrow_color, back_arrow_vertices, width=2)
+    back_arrow_vertices = list(dilation * np.array([(x, y), (x+3, y+2.5), (x+3, y+1.25), 
+                (x+7, y+1.25), (x+7, y-1.25), (x+3, y-1.25), (x+3, y-2.5)]))
+    pyg.draw.polygon(screen, arrow_color, back_arrow_vertices, width=2)
     return back_arrow_vertices
+
+def forward_arrow():
+    arrow_color = 'green'
+    x = 124.5
+    y = 90
+    dilation = 5
+    forward_arrow_vertices = list(dilation * np.array([(x, y), (x-3, y+2.5), (x-3, y+1.25), 
+                (x-7, y+1.25), (x-7, y-1.25), (x-3, y-1.25), (x-3, y-2.5)]))
+    pyg.draw.polygon(screen, arrow_color, forward_arrow_vertices, width=2)
+    return forward_arrow_vertices
 
 def is_inside_arrow(point,arrow_vertices):
     x, y = point
@@ -64,7 +73,9 @@ while True:
     while title_screen:
         pyg.display.set_caption("Snake Game")
         screen.fill('black')
+        mouse_pos = pyg.mouse.get_pos()
 
+        # TO MAKE THE TITLE + SUBTITLE...
         title_title = title_font.render("SNAKE GAME", True, gen_col)
         subtitle = subtitle_font.render("PRESS                TO START", True, gen_col)
         title_height = height//2-20
@@ -74,6 +85,7 @@ while True:
 
         screen.blit(title_title, title_rect)
         screen.blit(subtitle, subtitle_rect)
+
 
         # TO MAKE THE 'SPACE' BLINK...
         SPACE_visible = True
@@ -91,8 +103,12 @@ while True:
             SPACE_rect = SPACE_surface.get_rect(topleft=(SPACE_x, subtitle_height-13))
             screen.blit(SPACE_surface, SPACE_rect)
 
+
+        # EVENTS CAPTURE...
         for event in pyg.event.get():
-            if (event.type==KEYDOWN) and (event.key==K_SPACE):
+            if event.type == pyg.QUIT:
+                pyg.quit()
+            elif (event.type==KEYDOWN) and (event.key==K_SPACE):
                 title_screen = False
                 option_screen = True
 
@@ -119,10 +135,11 @@ while True:
     while option_screen:
         screen.fill('black')
         pyg.display.set_caption("Game Settings")
-
+        mouse_pos = pyg.mouse.get_pos()
 
         # TO CREATE BACK-BUTTON!
-        back_arrow_polygon = back_arrow()
+        back_arrow_polygon_option = back_arrow()
+        forward_arrow_polygon_option = forward_arrow()
 
         # SCREEN TITLE...
         option_title_font = pyg.font.Font(None,50)
@@ -131,30 +148,8 @@ while True:
         option_title_rect = option_title.get_rect(center=(width//2,option_title_height))
         screen.blit(option_title, option_title_rect)
 
-
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 1: NAME
-        # TO RECORD THE USER'S NAME... 
-        for event in pyg.event.get():
-            if event.type == KEYDOWN:
-                if event.key == K_BACKSPACE:
-                    username = username[:-1]
-                # THIS COULD USE SOME CLEANING UP!!
-                elif event.key == K_RETURN:
-                    username = username.rstrip()
-                    pyg.display.set_caption("{}'s Game Settings".format(username))
-                # THIS COULD USE SOME CLEANING UP!!
-                # 1. can't let users enter tabs -- results in something weird
-                # 2. should be a reasonable length check
-                # 3. 
-                elif event.unicode.isalpha() or event.unicode.isspace():
-                    username += event.unicode
-            elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
-                mouse_pos = pyg.mouse.get_pos()
-                if is_inside_arrow(mouse_pos, back_arrow_polygon):
-                    title_screen = True
-                    option_screen = False
-                    break
 
 
         # TO POSITION BOTH QUESTION / ANSWER...
@@ -189,10 +184,44 @@ while True:
         snake_q_rect = snake_q_surface.get_rect(topleft=(snake_q_left,snake_q_top))
         screen.blit(snake_q_surface,snake_q_rect)
 
+
+        
+
+
+        # TRYING TO DEFINE A COLOR LINE TO HOPEFULLY PUT IN A FUNCTION!
+        color_options = ['RED','ORANGE','YELLOW','GREEN','BLUE','PURPLE']
+        clicked_box_index = None
+
+        for color_index in range(len(color_options)):
+            color_box_width = 30
+            color_box_x = snake_q_rect.right + 30 + (color_index * color_box_width)
+            color_box_height_adj = -17
+            color_box_y = snake_q_top + color_box_height_adj
+            given_box = pyg.Rect(color_box_x,color_box_y,
+                color_box_width,color_box_width)
+            pyg.draw.rect(screen, color_options[color_index], given_box)
+            
+            # this is to add white around the boxes? idk if this fits the look lol
+            #pyg.draw.rect(screen, gen_col, [color_box_x,color_box_y,
+            #    color_box_width,color_box_width],width=1)
+
+            if given_box.collidepoint(mouse_pos):
+                snake_color = a_font.render(str(color_options[color_index]), 
+                    True, gen_col)
+                snake_color_width = 360
+                snake_color_height_adj = 33
+                snake_color_height = snake_q_top + snake_color_height_adj
+                snake_color_rect = snake_color.get_rect(center=(snake_color_width,snake_color_height))
+                screen.blit(snake_color, snake_color_rect)
+
+                #pyg.draw.rect(screen, gen_col, given_box, width=2)
+
+
+
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 4: PELLET COLOR
         pellet_q_left, pellet_q_top = q_left, (snake_q_top+space_between_questions)
-        pellet_q_surface = q_font.render(snake_color_question, True, gen_col)
+        pellet_q_surface = q_font.render(pellet_color_question, True, gen_col)
         pellet_q_rect = pellet_q_surface.get_rect(topleft=(pellet_q_left,pellet_q_top))
         screen.blit(pellet_q_surface,pellet_q_rect)
 
@@ -203,17 +232,84 @@ while True:
         board_q_rect = board_q_surface.get_rect(topleft=(board_q_left,board_q_top))
         screen.blit(board_q_surface,board_q_rect)
 
+
+
+
+
+        # EVENTS CATCHER...
+        for event in pyg.event.get():
+            if event.type == pyg.QUIT:
+                pyg.quit()
+            # TO ENTER USERNAME...
+            elif event.type == KEYDOWN:
+                if event.key == K_BACKSPACE:
+                    username = username[:-1]
+                # THIS COULD USE SOME CLEANING UP!!
+                elif event.key == K_RETURN:
+                    username = username.rstrip()
+                    pyg.display.set_caption("{}'s Game Settings".format(username))
+                # THIS COULD USE SOME CLEANING UP!!
+                # 1. can't let users enter tabs -- results in something weird
+                # 2. should be a reasonable length check
+                # 3. 
+                elif event.unicode.isalpha() or event.unicode.isspace():
+                    username += event.unicode
+            # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
+            elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
+                if is_inside_arrow(mouse_pos, back_arrow_polygon_option):
+                    title_screen = True
+                    option_screen = False
+                    break
+            # WHAT HAPPENS IF FORWARD BUTTON IS PRESSED...
+            elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
+                if is_inside_arrow(mouse_pos, forward_arrow_polygon_option):
+                    game_screen = True
+                    option_screen = False
+                    break
+
+            #elif (event.type == pyg.MOUSEBUTTONDOWN) and (event.button == 1)
         pyg.display.flip()
+
 
 # maybe i can make it so that when you do hit enter on your name quotes appear? maybe a color change? something to differentiate
 
 
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    while game_screen:
+        screen.fill('black')
+        mouse_pos = pyg.mouse.get_pos()
+
+        # TEST_USERNAME // TEST_USERNAME // TEST_USERNAME // TEST_USERNAME
+        TEST_USERNAME = 'Alex'
+        pyg.display.set_caption("{}'s Snake Game".format(TEST_USERNAME))
+
+
+        # EVENTS CATCHER...
+        for event in pyg.event.get():
+            if event.type == pyg.QUIT:
+                pyg.quit()
+
+        pyg.display.flip()
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#while game_screen():
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#while end_screen():
+    # this is what should be presented SHOULD A GAME BE FINISHED!
+    # 1. the results - 'YOU LOST', 'YOU WON'
+    # 2. 'play again!!'
+    # 3. (settings?)
+    '''
+    while end_screen():
+        screen.fill('black')
+        mouse_pos = pyg.mouse.get_pos()
+        pyg.display.set_caption("RESULTS PAGE")
 
-pyg.quit()
+        # EVENTS CATCHER...
+        for event in pyg.event.get():
+            if event.type == pyg.QUIT:
+                pyg.quit()
+
+        pyg.display.flip()
+    '''
+
+    pyg.quit()
 
 # %%
