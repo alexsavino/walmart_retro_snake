@@ -21,6 +21,7 @@ final_screen = False
 #PREVIOUS_PAGE = title_screen # is this format / connection builder im rly gonna use?
 
 
+
 # FUNCTIONS THAT RELATE THE SCREENS...
 def back_arrow():
     arrow_color = 'red'
@@ -32,6 +33,7 @@ def back_arrow():
     pyg.draw.polygon(screen, arrow_color, back_arrow_vertices, width=2)
     return back_arrow_vertices
 
+
 def forward_arrow():
     arrow_color = 'green'
     x = 124.5
@@ -41,6 +43,7 @@ def forward_arrow():
                 (x-7, y+1.25), (x-7, y-1.25), (x-3, y-1.25), (x-3, y-2.5)]))
     pyg.draw.polygon(screen, arrow_color, forward_arrow_vertices, width=2)
     return forward_arrow_vertices
+
 
 def is_inside_arrow(point,arrow_vertices):
     x, y = point
@@ -66,14 +69,14 @@ while True:
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     SPACE_timer = 0
 
-    title_font = pyg.font.Font(None,80)
-    subtitle_font = pyg.font.Font(None,30)
-    SPACE_font = pyg.font.Font(None,35)
-
     while title_screen:
         pyg.display.set_caption("Snake Game")
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
+
+        title_font = pyg.font.Font(None,80)
+        subtitle_font = pyg.font.Font(None,30)
+        SPACE_font = pyg.font.Font(None,35)
 
         # TO MAKE THE TITLE + SUBTITLE...
         title_title = title_font.render("SNAKE GAME", True, gen_col)
@@ -106,7 +109,7 @@ while True:
 
         # EVENTS CAPTURE...
         for event in pyg.event.get():
-            if event.type == pyg.QUIT:
+            if (event.type == pyg.QUIT):
                 pyg.quit()
             elif (event.type==KEYDOWN) and (event.key==K_SPACE):
                 title_screen = False
@@ -125,12 +128,9 @@ while True:
     # LIST OF OPTION QUESTIONS...
     name_question = "1. WHAT'S YOUR NAME?: "
     username = ""
-
     snake_color_question = "2. SNAKE COLOR?: "
     pellet_color_question = "3. PELLET COLOR?: "
     board_color_question = "4. BOARD COLOR?: "
-
-    space_between_questions = 88
 
     while option_screen:
         screen.fill('black')
@@ -148,6 +148,8 @@ while True:
         option_title_rect = option_title.get_rect(center=(width//2,option_title_height))
         screen.blit(option_title, option_title_rect)
 
+        space_between_questions = 88
+        
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 1: NAME
 
@@ -251,9 +253,10 @@ while True:
                 # THIS COULD USE SOME CLEANING UP!!
                 # 1. can't let users enter tabs -- results in something weird
                 # 2. should be a reasonable length check
-                # 3. 
+                # 3. ...
                 elif event.unicode.isalpha() or event.unicode.isspace():
-                    username += event.unicode
+                    if event.unicode != '\t':
+                        username += event.unicode
             # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
                 if is_inside_arrow(mouse_pos, back_arrow_polygon_option):
@@ -261,17 +264,21 @@ while True:
                     option_screen = False
                     break
             # WHAT HAPPENS IF FORWARD BUTTON IS PRESSED...
+            '''
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
                 if is_inside_arrow(mouse_pos, forward_arrow_polygon_option):
                     game_screen = True
                     option_screen = False
                     break
+            '''
+            # WHAT HAPPENS WHEN YOU CLICK ON THE COLOR BOXES?
+            # ... 
 
-            #elif (event.type == pyg.MOUSEBUTTONDOWN) and (event.button == 1)
         pyg.display.flip()
 
 
-# maybe i can make it so that when you do hit enter on your name quotes appear? maybe a color change? something to differentiate
+# maybe i can make it so that when you do hit enter on your name quotes appear? 
+#   maybe a color change? something to differentiate
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -288,7 +295,9 @@ while True:
         for event in pyg.event.get():
             if event.type == pyg.QUIT:
                 pyg.quit()
-
+            # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
+            # ...
+            
         pyg.display.flip()
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
