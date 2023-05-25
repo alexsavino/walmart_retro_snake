@@ -25,23 +25,41 @@ final_screen = False
 # FUNCTIONS THAT RELATE THE SCREENS...
 def back_arrow():
     arrow_color = 'red'
+
+    # TO DRAW THE NEUTRAL ARROW OUTLINE...
     x = 3
     y = 5
     dilation = 5
     back_arrow_vertices = list(dilation * np.array([(x, y), (x+3, y+2.5), (x+3, y+1.25), 
                 (x+7, y+1.25), (x+7, y-1.25), (x+3, y-1.25), (x+3, y-2.5)]))
     pyg.draw.polygon(screen, arrow_color, back_arrow_vertices, width=2)
+
+    # TO ENABLE HOVER COLOR...
+    if is_inside_arrow(mouse_pos, back_arrow_vertices):
+        polygon_surface = pyg.Surface((width,height), pyg.SRCALPHA)
+        pyg.draw.polygon(polygon_surface, arrow_color, back_arrow_vertices)
+        screen.blit(polygon_surface, (0, 0))
+     
     return back_arrow_vertices
 
 
 def forward_arrow():
     arrow_color = 'green'
+
+    # TO DRAW THE NEUTRAL ARROW OUTLINE...
     x = 124.5
     y = 90
     dilation = 5
     forward_arrow_vertices = list(dilation * np.array([(x, y), (x-3, y+2.5), (x-3, y+1.25), 
                 (x-7, y+1.25), (x-7, y-1.25), (x-3, y-1.25), (x-3, y-2.5)]))
     pyg.draw.polygon(screen, arrow_color, forward_arrow_vertices, width=2)
+
+    # TO ENABLE HOVER COLOR...
+    if is_inside_arrow(mouse_pos, forward_arrow_vertices):
+        polygon_surface = pyg.Surface((width,height), pyg.SRCALPHA)
+        pyg.draw.polygon(polygon_surface, arrow_color, forward_arrow_vertices)
+        screen.blit(polygon_surface, (0, 0))
+
     return forward_arrow_vertices
 
 
@@ -62,7 +80,7 @@ def is_inside_arrow(point,arrow_vertices):
         p1x, p1y = p2x, p2y
     return inside
 
-
+hovered_color = None
 # CREATING SCREEN CONDITIONS...
 # PRIMARY GAME LOOP...
 while True:
@@ -187,36 +205,44 @@ while True:
         screen.blit(snake_q_surface,snake_q_rect)
 
 
+
+        def color_bar_caption(snake_color):
+            snake_color_width = 360
+            snake_color_height_adj = 33
+            snake_color_height = snake_q_top + snake_color_height_adj
+            snake_color_rect = snake_color.get_rect(center=(snake_color_width,snake_color_height))
+            screen.blit(snake_color, snake_color_rect)
         
+        def color_bar_system():
 
+            global hovered_color
 
-        # TRYING TO DEFINE A COLOR LINE TO HOPEFULLY PUT IN A FUNCTION!
-        color_options = ['RED','ORANGE','YELLOW','GREEN','BLUE','PURPLE']
-        clicked_box_index = None
+            color_options = ['RED','ORANGE','YELLOW','GREEN','BLUE','PURPLE']
 
-        for color_index in range(len(color_options)):
-            color_box_width = 30
-            color_box_x = snake_q_rect.right + 30 + (color_index * color_box_width)
-            color_box_height_adj = -17
-            color_box_y = snake_q_top + color_box_height_adj
-            given_box = pyg.Rect(color_box_x,color_box_y,
-                color_box_width,color_box_width)
-            pyg.draw.rect(screen, color_options[color_index], given_box)
-            
-            # this is to add white around the boxes? idk if this fits the look lol
-            #pyg.draw.rect(screen, gen_col, [color_box_x,color_box_y,
-            #    color_box_width,color_box_width],width=1)
+            for color_index in range(len(color_options)):
+                # DRAWING THE COLORED RECTANGLES...
+                color_box_width = 30
+                color_box_x = snake_q_rect.right + 30 + (color_index * color_box_width)
+                color_box_height_adj = -17
+                color_box_y = snake_q_top + color_box_height_adj
+                given_box = pyg.Rect(color_box_x,color_box_y,
+                    color_box_width,color_box_width)
+                pyg.draw.rect(screen, color_options[color_index], given_box)
+                
+                # TO SEE IF THE MOUSE IS HOVERING OVER EACH BOX...
+                if given_box.collidepoint(mouse_pos):
+                    snake_color = a_font.render(str(color_options[color_index]), 
+                        True, gen_col)
+                    color_bar_caption(snake_color)
+                    hovered_color = color_options[color_index]
 
-            if given_box.collidepoint(mouse_pos):
-                snake_color = a_font.render(str(color_options[color_index]), 
-                    True, gen_col)
-                snake_color_width = 360
-                snake_color_height_adj = 33
-                snake_color_height = snake_q_top + snake_color_height_adj
-                snake_color_rect = snake_color.get_rect(center=(snake_color_width,snake_color_height))
-                screen.blit(snake_color, snake_color_rect)
+            if hovered_color:
+                snake_color = a_font.render(str(hovered_color), True, gen_col)
+                color_bar_caption(snake_color)
 
                 #pyg.draw.rect(screen, gen_col, given_box, width=2)
+ 
+        color_bar_system()
 
 
 
@@ -257,20 +283,18 @@ while True:
                 elif event.unicode.isalpha() or event.unicode.isspace():
                     if event.unicode != '\t':
                         username += event.unicode
-            # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
+            # WHAT HAPPENS WHEN THE MOUSE IS CLICKED...
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
+                # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
                 if is_inside_arrow(mouse_pos, back_arrow_polygon_option):
                     title_screen = True
                     option_screen = False
                     break
-            # WHAT HAPPENS IF FORWARD BUTTON IS PRESSED...
-            '''
-            elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
+                # WHAT HAPPENS IF FORWARD BUTTON IS PRESSED...
                 if is_inside_arrow(mouse_pos, forward_arrow_polygon_option):
                     game_screen = True
                     option_screen = False
                     break
-            '''
             # WHAT HAPPENS WHEN YOU CLICK ON THE COLOR BOXES?
             # ... 
 
@@ -278,7 +302,8 @@ while True:
 
 
 # maybe i can make it so that when you do hit enter on your name quotes appear? 
-#   maybe a color change? something to differentiate
+#   maybe a color change? put a white box around it? something to differentiate
+#   how could you go back and edit it yourself?
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -319,6 +344,4 @@ while True:
         pyg.display.flip()
     '''
 
-    pyg.quit()
-
-# %%
+pyg.quit()
