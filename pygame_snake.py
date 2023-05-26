@@ -319,6 +319,11 @@ while True:
     
     TEST_USER_COLOR = 'red'
 
+    board_colors = [['red','tomato'],['chocolate','orange'],['gold','yellow'],
+        ['green','limegreen'],['blue','royalblue'],['darkviolet','mediumorchid']]
+    
+
+
     while game_screen:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
@@ -335,7 +340,7 @@ while True:
 
         # SCREEN TITLE...
         game_title_font = pyg.font.Font(None,50)
-        game_title = game_title_font.render("SNAKE GAME (ROUND?)", True, gen_col)
+        game_title = game_title_font.render("!~SNAKE GAME~!", True, gen_col)
         game_title_height = 46
         game_title_rect = game_title.get_rect(center=(width//2,game_title_height))
         screen.blit(game_title, game_title_rect)
@@ -343,14 +348,14 @@ while True:
 
 
         square_size = 18
-        row_span = (width-75)
-        col_span = (height-100)
+        row_span = #(width-75)
+        col_span = #(height-100)
         num_rows = col_span // square_size
         num_cols = row_span // square_size
 
         # Define the two colors for the checkered pattern
-        color1 = 'blue'
-        color2 = 'royalblue'
+        color1 = 'darkviolet'
+        color2 = 'mediumorchid'
 
         #print('width: ', width)
         #print('row_span: ', row_span)
@@ -366,7 +371,13 @@ while True:
                 color = color1 if (row + col) % 2 == 0 else color2
                 pyg.draw.rect(screen, color, (x, y, square_size, square_size))
 
-        #'''
+        pyg.draw.line(screen,gen_col,(board_x,board_y),(width - board_x,board_y),width=1)
+        pyg.draw.line(screen,gen_col,(board_x,board_y),(board_x,board_y,width=1)
+        #pyg.draw.line(screen,gen_col,(,),(,),width=1)
+        #pyg.draw.line(screen,gen_col,(,),(,),width=1)
+
+
+        '''
         for row in range(num_rows+1):
             # TO DRAW HORIZONTAL WHITE LINES...
             x_i = board_x
@@ -380,7 +391,7 @@ while True:
                 y_i = board_y
                 y_f = board_y + (row * square_size)
                 pyg.draw.line(screen, gen_col ,(x,y_i),(x,y_f), width=1)
-        #'''
+        '''
 
 
         # EVENTS CATCHER...
