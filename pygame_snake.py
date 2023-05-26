@@ -1,6 +1,13 @@
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# -*- coding: utf-8 -*-
+# @Date:    2023-05-23 12:07:44
+# @Author:  ALEXANDRA SAVINO 
+# @Email:   avs2167@barnard.edu
+
 import pygame as pyg
 from pygame.locals import *
 import numpy as np
+import random as rand
 '''
 import sys
 sys.stdout = open('output.log', 'w')
@@ -21,7 +28,7 @@ final_screen = False
 #PREVIOUS_PAGE = title_screen # is this format / connection builder im rly gonna use?
 
 
-
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # FUNCTIONS THAT RELATE THE SCREENS...
 def back_arrow():
     arrow_color = 'red'
@@ -80,11 +87,61 @@ def is_inside_arrow(point,arrow_vertices):
         p1x, p1y = p2x, p2y
     return inside
 
-hovered_color = None
-# CREATING SCREEN CONDITIONS...
+
+def color_bar_caption(color, q_top):
+    color_width = 360
+    color_height_adj = 33
+    color_height = q_top + color_height_adj
+    color_rect = color.get_rect(center=(color_width, color_height))
+    screen.blit(color, color_rect)
+
+
+def color_bar_system(q_rect, q_top, line_identifier):
+    global hovered_colors
+
+    color_options = ['RED', 'ORANGE', 'YELLOW', 'GREEN', 'BLUE', 'PURPLE']
+
+    for color_index in range(len(color_options)):
+        # DRAWING THE COLORED RECTANGLES...
+        color_box_width = 30
+        color_box_x = q_rect.right + 30 + (color_index * color_box_width)
+        color_box_height_adj = -17
+        color_box_y = q_top + color_box_height_adj
+        given_box = pyg.Rect(color_box_x, color_box_y, color_box_width, color_box_width)
+        pyg.draw.rect(screen, color_options[color_index], given_box)
+        
+        # TO SEE IF THE MOUSE IS HOVERING OVER EACH BOX...
+        if given_box.collidepoint(mouse_pos):
+            color = a_font.render(str(color_options[color_index]), True, gen_col)
+            color_bar_caption(color, q_top)
+            hovered_colors[line_identifier] = color_options[color_index]
+
+            # Draw rectangle around the hovered box
+            pyg.draw.rect(screen, gen_col, given_box, width=2)
+
+    if line_identifier in hovered_colors:
+        color = a_font.render(str(hovered_colors[line_identifier]), True, gen_col)
+        color_bar_caption(color, q_top)
+
+        # Draw rectangle around the last hovered box
+        last_hovered_box_index = color_options.index(hovered_colors[line_identifier])
+        last_hovered_box_x = q_rect.right + 30 + (last_hovered_box_index * color_box_width)
+        last_hovered_box_y = q_top + color_box_height_adj
+        last_hovered_box = pyg.Rect(last_hovered_box_x, last_hovered_box_y, color_box_width, color_box_width)
+        pyg.draw.rect(screen, gen_col, last_hovered_box, width=2)
+
+hovered_colors = {}
+
+
+
+
+#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # PRIMARY GAME LOOP...
 while True:
-#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    title_screen = False
+    option_screen = False
+    game_screen = True
+
     SPACE_timer = 0
 
     while title_screen:
@@ -111,13 +168,14 @@ while True:
         # TO MAKE THE 'SPACE' BLINK...
         SPACE_visible = True
         SPACE_timer += 1
-        time_not_visible = 700
-        time_visible = 2000
-        if SPACE_timer < time_not_visible:
+        time_not_visible = 825
+        time_visible = 700
+
+        if (SPACE_timer > time_visible) and (SPACE_timer < time_not_visible):
             SPACE_visible = not SPACE_visible
-        elif SPACE_timer >= time_visible:
+        elif SPACE_timer >= time_not_visible:
             SPACE_timer = 0
-    
+
         if SPACE_visible:
             SPACE_x = width//2-54
             SPACE_surface = SPACE_font.render("SPACE", True, gen_col)
@@ -155,7 +213,7 @@ while True:
         pyg.display.set_caption("Game Settings")
         mouse_pos = pyg.mouse.get_pos()
 
-        # TO CREATE BACK-BUTTON!
+        # TO CREATE SCREEN-BUTTONS!
         back_arrow_polygon_option = back_arrow()
         forward_arrow_polygon_option = forward_arrow()
 
@@ -166,11 +224,10 @@ while True:
         option_title_rect = option_title.get_rect(center=(width//2,option_title_height))
         screen.blit(option_title, option_title_rect)
 
+
         space_between_questions = 88
-        
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 1: NAME
-
 
         # TO POSITION BOTH QUESTION / ANSWER...
         q_left, q_top = 75, 100
@@ -182,7 +239,6 @@ while True:
         a_surface = a_font.render(username, True, gen_col)
         a_rect = a_surface.get_rect(topleft=(a_left, a_top))
         screen.blit(a_surface, a_rect)
-
 
         # TO MAKE THE CURSOR BLINK...
         cursor_timer += 1
@@ -203,48 +259,7 @@ while True:
         snake_q_surface = q_font.render(snake_color_question, True, gen_col)
         snake_q_rect = snake_q_surface.get_rect(topleft=(snake_q_left,snake_q_top))
         screen.blit(snake_q_surface,snake_q_rect)
-
-
-
-        def color_bar_caption(snake_color):
-            snake_color_width = 360
-            snake_color_height_adj = 33
-            snake_color_height = snake_q_top + snake_color_height_adj
-            snake_color_rect = snake_color.get_rect(center=(snake_color_width,snake_color_height))
-            screen.blit(snake_color, snake_color_rect)
-        
-        def color_bar_system():
-
-            global hovered_color
-
-            color_options = ['RED','ORANGE','YELLOW','GREEN','BLUE','PURPLE']
-
-            for color_index in range(len(color_options)):
-                # DRAWING THE COLORED RECTANGLES...
-                color_box_width = 30
-                color_box_x = snake_q_rect.right + 30 + (color_index * color_box_width)
-                color_box_height_adj = -17
-                color_box_y = snake_q_top + color_box_height_adj
-                given_box = pyg.Rect(color_box_x,color_box_y,
-                    color_box_width,color_box_width)
-                pyg.draw.rect(screen, color_options[color_index], given_box)
-                
-                # TO SEE IF THE MOUSE IS HOVERING OVER EACH BOX...
-                if given_box.collidepoint(mouse_pos):
-                    snake_color = a_font.render(str(color_options[color_index]), 
-                        True, gen_col)
-                    color_bar_caption(snake_color)
-                    hovered_color = color_options[color_index]
-
-            if hovered_color:
-                snake_color = a_font.render(str(hovered_color), True, gen_col)
-                color_bar_caption(snake_color)
-
-                #pyg.draw.rect(screen, gen_col, given_box, width=2)
- 
-        color_bar_system()
-
-
+        color_bar_system(snake_q_rect,snake_q_top,'snake')
 
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 4: PELLET COLOR
@@ -252,6 +267,7 @@ while True:
         pellet_q_surface = q_font.render(pellet_color_question, True, gen_col)
         pellet_q_rect = pellet_q_surface.get_rect(topleft=(pellet_q_left,pellet_q_top))
         screen.blit(pellet_q_surface,pellet_q_rect)
+        color_bar_system(pellet_q_rect,pellet_q_top,'pellet')
 
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 3: BOARD COLOR
@@ -259,29 +275,20 @@ while True:
         board_q_surface = q_font.render(board_color_question, True, gen_col)
         board_q_rect = board_q_surface.get_rect(topleft=(board_q_left,board_q_top))
         screen.blit(board_q_surface,board_q_rect)
-
-
-
+        color_bar_system(board_q_rect,board_q_top,'board')
 
 
         # EVENTS CATCHER...
         for event in pyg.event.get():
-            if event.type == pyg.QUIT:
+            if (event.type == pyg.QUIT):
                 pyg.quit()
             # TO ENTER USERNAME...
             elif event.type == KEYDOWN:
-                if event.key == K_BACKSPACE:
+                if (event.key == K_BACKSPACE):
                     username = username[:-1]
-                # THIS COULD USE SOME CLEANING UP!!
-                elif event.key == K_RETURN:
-                    username = username.rstrip()
-                    pyg.display.set_caption("{}'s Game Settings".format(username))
-                # THIS COULD USE SOME CLEANING UP!!
-                # 1. can't let users enter tabs -- results in something weird
-                # 2. should be a reasonable length check
-                # 3. ...
+
                 elif event.unicode.isalpha() or event.unicode.isspace():
-                    if event.unicode != '\t':
+                    if (event.unicode != '\t') and (event.key != 13) and (len(username) < 20):
                         username += event.unicode
             # WHAT HAPPENS WHEN THE MOUSE IS CLICKED...
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
@@ -295,25 +302,85 @@ while True:
                     game_screen = True
                     option_screen = False
                     break
-            # WHAT HAPPENS WHEN YOU CLICK ON THE COLOR BOXES?
-            # ... 
 
         pyg.display.flip()
 
+    username = username.strip()
 
 # maybe i can make it so that when you do hit enter on your name quotes appear? 
-#   maybe a color change? put a white box around it? something to differentiate
+#   maybe a color change? put a white box ar    ound it? something to differentiate
 #   how could you go back and edit it yourself?
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    # TO CREATE MAC DISPLAY NAME IN THE CASE OF NO USERNAME...
+    animal_list = ['Fox','Robin','Chipmunk','Squirrel','Deer']
+    anonymous_username = pyg.display.set_caption("Anonymous {}'s Snake Game".format(rand.choice(animal_list)))
+    
+    TEST_USER_COLOR = 'red'
+
     while game_screen:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
 
-        # TEST_USERNAME // TEST_USERNAME // TEST_USERNAME // TEST_USERNAME
-        TEST_USERNAME = 'Alex'
-        pyg.display.set_caption("{}'s Snake Game".format(TEST_USERNAME))
+        # TO CREATE MAC DISPLAY NAME...
+        if username == "":
+            anonymous_username
+        else:
+            pyg.display.set_caption("{}'s Snake Game".format(username))
+
+        # TO CREATE SCREEN-BUTTONS!
+        back_arrow_polygon_option = back_arrow()
+        #forward_arrow_polygon_option = forward_arrow()
+
+        # SCREEN TITLE...
+        game_title_font = pyg.font.Font(None,50)
+        game_title = game_title_font.render("SNAKE GAME (ROUND?)", True, gen_col)
+        game_title_height = 46
+        game_title_rect = game_title.get_rect(center=(width//2,game_title_height))
+        screen.blit(game_title, game_title_rect)
+
+
+
+        square_size = 18
+        row_span = (width-75)
+        col_span = (height-100)
+        num_rows = col_span // square_size
+        num_cols = row_span // square_size
+
+        # Define the two colors for the checkered pattern
+        color1 = 'blue'
+        color2 = 'royalblue'
+
+        #print('width: ', width)
+        #print('row_span: ', row_span)
+        board_x = (width - (num_cols * square_size)) / 2
+        board_y = 78
+        
+        # Loop over the rows and columns to draw the squares
+        for row in range(num_rows):
+
+            for col in range(num_cols):
+                x = board_x + (col * square_size)
+                y = board_y + (row * square_size)
+                color = color1 if (row + col) % 2 == 0 else color2
+                pyg.draw.rect(screen, color, (x, y, square_size, square_size))
+
+        #'''
+        for row in range(num_rows+1):
+            # TO DRAW HORIZONTAL WHITE LINES...
+            x_i = board_x
+            y = board_y + (row * square_size)
+            x_f = width - board_x
+            pyg.draw.line(screen, gen_col, (x_i,y),(x_f,y), width=1)
+
+            for col in range(num_cols+1):
+                # TO DRAW VERTICAL WHITE LINES...
+                x = board_x + (col * square_size)
+                y_i = board_y
+                y_f = board_y + (row * square_size)
+                pyg.draw.line(screen, gen_col ,(x,y_i),(x,y_f), width=1)
+        #'''
 
 
         # EVENTS CATCHER...
@@ -321,7 +388,14 @@ while True:
             if event.type == pyg.QUIT:
                 pyg.quit()
             # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
-            # ...
+            elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
+                if is_inside_arrow(mouse_pos, back_arrow_polygon_option):
+                # 1. 'are you sure you wanna quit the game?' y/n
+                #   (and it PAUSES YOUR GAME)
+                # 2. 
+                    option_screen = True
+                    game_screen = False
+                    break
             
         pyg.display.flip()
 
