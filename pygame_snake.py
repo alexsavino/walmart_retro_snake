@@ -143,9 +143,15 @@ hovered_colors = {}
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # PRIMARY GAME LOOP...
 while True:
+<<<<<<< HEAD
     #title_screen = False
     #option_screen = False
     #game_screen = True
+=======
+    title_screen = True
+    option_screen = False
+    game_screen = False
+>>>>>>> c8bc4765055efaba84001eb79d1e89462962d1c1
 
     SPACE_timer = 0
 
