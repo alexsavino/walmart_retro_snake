@@ -349,7 +349,7 @@ while True:
 
         square_size = 18
         row_span = #(width-75)
-        col_span = #(height-100)
+        col_span = square_size#(height-100)
         num_rows = col_span // square_size
         num_cols = row_span // square_size
 
