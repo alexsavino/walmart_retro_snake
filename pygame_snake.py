@@ -138,9 +138,9 @@ hovered_colors = {}
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # PRIMARY GAME LOOP...
 while True:
-    title_screen = False
+    title_screen = True
     option_screen = False
-    game_screen = True
+    game_screen = False
 
     SPACE_timer = 0
 
@@ -348,7 +348,7 @@ while True:
 
 
         square_size = 18
-        row_span = #(width-75)
+        row_span = (width-75)
         col_span = square_size#(height-100)
         num_rows = col_span // square_size
         num_cols = row_span // square_size
@@ -371,8 +371,8 @@ while True:
                 color = color1 if (row + col) % 2 == 0 else color2
                 pyg.draw.rect(screen, color, (x, y, square_size, square_size))
 
-        pyg.draw.line(screen,gen_col,(board_x,board_y),(width - board_x,board_y),width=1)
-        pyg.draw.line(screen,gen_col,(board_x,board_y),(board_x,board_y,width=1)
+        #pyg.draw.line(screen,gen_col,(board_x,board_y),(width - board_x,board_y),width=1)
+        #pyg.draw.line(screen,gen_col,(board_x,board_y),(board_x,board_y,width=1)
         #pyg.draw.line(screen,gen_col,(,),(,),width=1)
         #pyg.draw.line(screen,gen_col,(,),(,),width=1)
 
