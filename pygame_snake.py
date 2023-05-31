@@ -27,6 +27,11 @@ game_screen = False
 final_screen = False
 #PREVIOUS_PAGE = title_screen # is this format / connection builder im rly gonna use?
 
+# TO CREATE MAC DISPLAY NAME IN THE CASE OF NO USERNAME...
+animal_list = ['Fox','Robin','Chipmunk','Squirrel','Deer']
+round_animal_name = rand.choice(animal_list)
+    
+
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # FUNCTIONS THAT RELATE THE SCREENS...
@@ -138,9 +143,9 @@ hovered_colors = {}
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # PRIMARY GAME LOOP...
 while True:
-    title_screen = False
-    option_screen = False
-    game_screen = True
+    #title_screen = False
+    #option_screen = False
+    #game_screen = True
 
     SPACE_timer = 0
 
@@ -314,9 +319,8 @@ while True:
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     # TO CREATE MAC DISPLAY NAME IN THE CASE OF NO USERNAME...
-    animal_list = ['Fox','Robin','Chipmunk','Squirrel','Deer']
-    anonymous_username = pyg.display.set_caption("Anonymous {}'s Snake Game".format(rand.choice(animal_list)))
-    
+    anonymous_username = pyg.display.set_caption("Anonymous {}'s Snake Game".format(round_animal_name))
+                                                 
     TEST_USER_COLOR = 'red'
 
     board_colors = [['red','tomato'],['chocolate','orange'],['gold','yellow'],
@@ -348,7 +352,7 @@ while True:
 
 
         square_size = 18
-        row_span = #(width-75)
+        row_span = (width-75)
         col_span = square_size#(height-100)
         num_rows = col_span // square_size
         num_cols = row_span // square_size
@@ -364,15 +368,16 @@ while True:
         
         # Loop over the rows and columns to draw the squares
         for row in range(num_rows):
-
+            x = board_x + (col * square_size)
+            y = board_y + (row * square_size)
             for col in range(num_cols):
                 x = board_x + (col * square_size)
                 y = board_y + (row * square_size)
                 color = color1 if (row + col) % 2 == 0 else color2
                 pyg.draw.rect(screen, color, (x, y, square_size, square_size))
 
-        pyg.draw.line(screen,gen_col,(board_x,board_y),(width - board_x,board_y),width=1)
-        pyg.draw.line(screen,gen_col,(board_x,board_y),(board_x,board_y,width=1)
+        #pyg.draw.line(screen,gen_col,(board_x,board_y),(width - board_x,board_y),width=1)
+        #pyg.draw.line(screen,gen_col,(board_x,board_y),(board_x,board_y,width=1)
         #pyg.draw.line(screen,gen_col,(,),(,),width=1)
         #pyg.draw.line(screen,gen_col,(,),(,),width=1)
 
