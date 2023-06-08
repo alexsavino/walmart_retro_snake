@@ -164,22 +164,25 @@ def color_bar_system(q_rect, q_top, line_identifier):
 hovered_colors = {}
 
 
+
+
+
 pellet_x = 0
 pellet_y = 0
-def create_pellet_rect():
+def get_pellet_rect():
     global pellet_x, pellet_y, square_size
     pellet_rect = pyg.Rect(pellet_x, pellet_y, square_size, square_size)
     return pellet_rect
 
 
-def get_pellet(pellet_color):
+def draw_pellet(pellet_color):
     global pellet_x, pellet_y, board_x, board_y, pellet_rect
 
     if pellet_x == 0 and pellet_y == 0:
         pellet_x = board_x + (rand.randint(1, num_cols - 1) * square_size)
         pellet_y = board_y + (rand.randint(1, num_rows - 1) * square_size)
 
-    pellet_rect = create_pellet_rect()
+    pellet_rect = get_pellet_rect()
 
     # TO DRAW A BLACK BORDER AROUND THE PELLET...
     pyg.draw.line(screen, 'black', (pellet_x, pellet_y), (pellet_x + square_size, pellet_y), width=1)
@@ -231,16 +234,17 @@ def check_snake_collision(snake_segments):
             print('*SELF collision*')
     
     # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
-'''
+
 pellet_counter = 0
 def pellet_counter(snake_segments):
     x, y = snake_segments[0]
     snake_head_rect = pyg.Rect(x, y, square_size, square_size)
 
-    if snake_head_rect.colliderect(pellet_rect):
-        pellet_counter += 1
-        print(pellet_counter)
-'''
+    if snake_head_rect.colliderect(get_pellet_rect()):
+        print('*PELLET collision')
+        #pellet_counter += 1
+        #print(pellet_counter)
+
 
 
 
@@ -460,7 +464,8 @@ while True:
         mouse_pos = pyg.mouse.get_pos()
         clock.tick(10)
 
-        #pellet_counter(snake_segments)
+        #$$$$
+        pellet_counter(snake_segments)
 
 
         # TO CREATE MAC DISPLAY NAME...
@@ -538,7 +543,7 @@ while True:
             x, y = segment
             pyg.draw.rect(screen, snake_color, (x, y, square_size, snake_width))
 
-        get_pellet(pellet_color)
+        draw_pellet(pellet_color)
         draw_border_lines()
         check_snake_collision(snake_segments)
 
