@@ -6,6 +6,7 @@
 
 # Legend:
 #   '# ?? ___' = something to be revisited, a question
+#   '# !! ___' = an exciting note!, new idea
 #   '# PLACEHOLDER' = a placeholding value of some kind
 
 import pygame as pyg
@@ -163,12 +164,33 @@ def color_bar_system(q_rect, q_top, line_identifier):
 hovered_colors = {}
 
 
+pellet_x = 0
+pellet_y = 0
+def create_pellet_rect():
+    global pellet_x, pellet_y, square_size
+    pellet_rect = pyg.Rect(pellet_x, pellet_y, square_size, square_size)
+    return pellet_rect
+
+
 def get_pellet(pellet_color):
-    global board_x, board_y
-    pellet_x = board_x + (rand.randint(1,num_cols-1) * square_size)
-    pellet_y = board_y + (rand.randint(1,num_rows-1) * square_size)
-    pyg.draw.rect(screen, pellet_color, 
-        (pellet_x, pellet_y, square_size, square_size))
+    global pellet_x, pellet_y, board_x, board_y, pellet_rect
+
+    if pellet_x == 0 and pellet_y == 0:
+        pellet_x = board_x + (rand.randint(1, num_cols - 1) * square_size)
+        pellet_y = board_y + (rand.randint(1, num_rows - 1) * square_size)
+
+    pellet_rect = create_pellet_rect()
+
+    # TO DRAW A BLACK BORDER AROUND THE PELLET...
+    pyg.draw.line(screen, 'black', (pellet_x, pellet_y), (pellet_x + square_size, pellet_y), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x + square_size, pellet_y), (pellet_x + square_size, pellet_y + square_size), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x + square_size, pellet_y + square_size), (pellet_x, pellet_y + square_size), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x, pellet_y + square_size), (pellet_x, pellet_y), width=1)
+
+    pyg.draw.rect(screen, pellet_color, pellet_rect)
+
+
+
     
 
 def draw_border_lines():
@@ -198,9 +220,30 @@ def check_snake_collision(snake_segments):
        snake_head_rect.clipline(line_2[0:2], line_2[2:4]) or \
        snake_head_rect.clipline(line_3[0:2], line_3[2:4]) or \
        snake_head_rect.clipline(line_4[0:2], line_4[2:4]):
-        print('cOlLision AH!')
+        print('*LINE collision*')
         #game_screen = False
         #final_screen = True
+
+    for segment in snake_segments[1:]:
+        x, y = segment[0], segment[1]
+        segment_rect = pyg.Rect(x, y, square_size, square_size)
+        if snake_head_rect.colliderect(segment_rect):
+            print('*SELF collision*')
+    
+    # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
+'''
+pellet_counter = 0
+def pellet_counter(snake_segments):
+    x, y = snake_segments[0]
+    snake_head_rect = pyg.Rect(x, y, square_size, square_size)
+
+    if snake_head_rect.colliderect(pellet_rect):
+        pellet_counter += 1
+        print(pellet_counter)
+'''
+
+
+
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -385,7 +428,7 @@ while True:
                                                  
     TEST_BOARD_COLOR = 'PURPLE' # PLACEHOLDER ... supposed to be 'board_color'
     snake_color = 'BLUE' # TEST_SNAKE_COLOR
-    TEST_PELLET_COLOR = 'RED'
+    pellet_color = 'RED' #TEST_PELLET_COLOR
 
     # TO INSTANTIATE THE SNAKE...
     snake_box_length = 3   # ?? IS THIS SOMETHING TO PULL OUT OF THIS WHILE LOOP?
@@ -410,16 +453,15 @@ while True:
     
     board_color_1 = board_colors[color_options.index(TEST_BOARD_COLOR)][0]
     board_color_2 = board_colors[color_options.index(TEST_BOARD_COLOR)][1]
-
-    # TO INSTANTIATE THE FIRST 
-    pellet_counter = 0
-    get_pellet(TEST_PELLET_COLOR)
-
+    
     
     while game_screen:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
         clock.tick(10)
+
+        #pellet_counter(snake_segments)
+
 
         # TO CREATE MAC DISPLAY NAME...
         if username == "":
@@ -438,7 +480,7 @@ while True:
         game_title_rect = game_title.get_rect(center=(width//2,game_title_height))
         screen.blit(game_title, game_title_rect)
 
-    
+
         # TO DRAW THE ARRAY...
         for row in range(num_rows):
             for col in range(num_cols):
@@ -496,6 +538,7 @@ while True:
             x, y = segment
             pyg.draw.rect(screen, snake_color, (x, y, square_size, snake_width))
 
+        get_pellet(pellet_color)
         draw_border_lines()
         check_snake_collision(snake_segments)
 
