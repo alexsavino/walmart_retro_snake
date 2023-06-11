@@ -30,7 +30,7 @@ clock = pyg.time.Clock()
 title_screen = False
 option_screen = False
 game_screen = True
-final_screen = False
+end_screen = False
 
 # TO CREATE MAC DISPLAY NAME IN THE CASE OF NO USERNAME...
 animal_list = ['Fox','Robin','Chipmunk','Squirrel','Deer']
@@ -164,7 +164,28 @@ def color_bar_system(q_rect, q_top, line_identifier):
 hovered_colors = {}
 
 
+def draw_array(board_color_1,board_color_2):
+    for row in range(num_rows):
+        for col in range(num_cols):
+            x = board_x + col * square_size
+            y = board_y + row * square_size
+            color = board_color_1 if (row + col) % 2 == 0 else board_color_2
+            pyg.draw.rect(screen, color, (x, y, square_size, square_size))
 
+
+def clear_array():
+    x = board_x
+    y = board_y
+    width = num_cols * square_size
+    height = num_rows * square_size
+    pyg.draw.rect(screen, 'black', (x, y, width, height))
+    draw_border_lines()
+
+
+def draw_snake(snake_segments):
+    for segment in snake_segments:
+        x, y = segment
+        pyg.draw.rect(screen, snake_color, (x, y, square_size, snake_width))
 
 
 pellet_x = 0
@@ -193,9 +214,6 @@ def draw_pellet(pellet_color):
     pyg.draw.rect(screen, pellet_color, pellet_rect)
 
 
-
-    
-
 def draw_border_lines():
     global line_1, line_2, line_3, line_4
 
@@ -215,7 +233,7 @@ def draw_border_lines():
 
 
 def check_snake_collision(snake_segments):
-    global game_screen, final_screen
+    global game_screen, end_screen
     x, y = snake_segments[0]
     snake_head_rect = pyg.Rect(x, y, square_size, square_size)
 
@@ -224,8 +242,32 @@ def check_snake_collision(snake_segments):
        snake_head_rect.clipline(line_3[0:2], line_3[2:4]) or \
        snake_head_rect.clipline(line_4[0:2], line_4[2:4]):
         print('*LINE collision*')
-        #game_screen = False
-        #final_screen = True
+        clock.tick(1)
+
+        # TO MAKE THE ARRAY BLINK...
+        num_of_blinks = 3
+        blink_interval = 0.3
+        # ?? snake_head = snake_segments[0] ??
+
+        def clear_snake(snake_segments):
+            for segment in snake_segments:
+                x, y = segment
+                pyg.draw.rect(screen, 'black', (x, y, square_size, snake_width))
+
+        clear_snake(snake_segments)
+        for _ in range(num_of_blinks):
+            clear_array()
+            pyg.display.flip()
+            pyg.time.wait(int(blink_interval * 1000)) 
+
+            draw_array(board_color_1, board_color_2)
+            pyg.display.flip()
+            pyg.time.wait(int(blink_interval * 1000))
+
+        # TO CHANGE SCREENS...
+        pyg.time.wait(int(blink_interval * 7000)) 
+        game_screen = False
+        end_screen = True
 
     for segment in snake_segments[1:]:
         x, y = segment[0], segment[1]
@@ -234,6 +276,7 @@ def check_snake_collision(snake_segments):
             print('*SELF collision*')
     
     # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
+
 
 pellet_counter = 0
 def pellet_counter(snake_segments):
@@ -486,13 +529,8 @@ while True:
         screen.blit(game_title, game_title_rect)
 
 
-        # TO DRAW THE ARRAY...
-        for row in range(num_rows):
-            for col in range(num_cols):
-                x = board_x + col * square_size
-                y = board_y + row * square_size
-                color = board_color_1 if (row + col) % 2 == 0 else board_color_2
-                pyg.draw.rect(screen, color, (x, y, square_size, square_size))
+        # TO DRAW THE ARRAY... 
+        draw_array(board_color_1,board_color_2)
 
         
         # TO DRAW THE SNAKE...
@@ -538,11 +576,7 @@ while True:
 
         snake_segments.insert(0, (new_segment_x, new_segment_y))
 
-
-        for segment in snake_segments:
-            x, y = segment
-            pyg.draw.rect(screen, snake_color, (x, y, square_size, snake_width))
-
+        draw_snake(snake_segments)
         draw_pellet(pellet_color)
         draw_border_lines()
         check_snake_collision(snake_segments)
@@ -566,11 +600,18 @@ while True:
     # 1. the results - 'YOU LOST', 'YOU WON'
     # 2. 'play again!!'
     # 3. (settings?)
-    '''
-    while end_screen():
+
+    while end_screen:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
-        pyg.display.set_caption("RESULTS PAGE")
+        pyg.display.set_caption("Final Screen")
+
+        # PLACEHOLDER
+        title_font = pyg.font.Font(None,80)
+        title_height = height//2-20
+        title_title = title_font.render("testing! testing!", True, gen_col)
+        title_rect = title_title.get_rect(center=(width//2, title_height))
+        screen.blit(title_title, title_rect)
 
         # EVENTS CATCHER...
         for event in pyg.event.get():
@@ -578,6 +619,5 @@ while True:
                 pyg.quit()
 
         pyg.display.flip()
-    '''
 
 pyg.quit()
