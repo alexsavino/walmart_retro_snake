@@ -182,10 +182,48 @@ def clear_array():
     draw_border_lines()
 
 
+# TO MAKE THE ARRAY BLINK...
+def blink_array(self_collision=False):
+    global game_screen, end_screen
+    num_of_blinks = 3
+    blink_interval = 0.3
+    # ?? snake_head = snake_segments[0] ??
+
+    clear_snake(snake_segments)
+    if (self_collision == True):
+        pyg.time.wait(int(blink_interval * 5000)) 
+    for _ in range(num_of_blinks):
+        clear_array()
+        pyg.display.flip()
+        pyg.time.wait(int(blink_interval * 1000)) 
+
+        draw_array(board_color_1, board_color_2)
+        pyg.display.flip()
+        pyg.time.wait(int(blink_interval * 1000))
+
+    # TO CHANGE SCREENS...
+    pyg.time.wait(int(blink_interval * 5000)) 
+    game_screen = False
+    end_screen = True
+
+
 def draw_snake(snake_segments):
     for segment in snake_segments:
         x, y = segment
         pyg.draw.rect(screen, snake_color, (x, y, square_size, snake_width))
+
+
+def clear_snake(snake_segments):
+    for segment in snake_segments:
+        x, y = segment
+        pyg.draw.rect(screen, 'black', (x, y, square_size, snake_width))
+
+'''
+#def add_snake_segment(snake_segments):
+    # this has to look at the last few blocks, determine which block is the last block and its direction
+    #   based on the block in front of it... then it has to actually add the new block and update 'snake_segments'
+'''
+
 
 
 pellet_x = 0
@@ -212,6 +250,29 @@ def draw_pellet(pellet_color):
     pyg.draw.line(screen, 'black', (pellet_x, pellet_y + square_size), (pellet_x, pellet_y), width=1)
 
     pyg.draw.rect(screen, pellet_color, pellet_rect)
+
+
+    # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
+
+pellet_counter = 0
+print(type(pellet_counter))
+
+def pellet_tracker(snake_segments):
+    global pellet_counter
+    x, y = snake_segments[0]
+    snake_head_rect = pyg.Rect(x, y, square_size, square_size)
+
+    if snake_head_rect.colliderect(get_pellet_rect()):
+        #print('*PELLET collision')
+        pellet_counter += 1
+        
+        # ?? CLEAR PELLET ??
+        # ?? PRINT NEW PELLET ??
+        # ?? ADD A NEW SNAKE SEGMENT ONTO THE END ??
+
+
+
+
 
 
 def draw_border_lines():
@@ -241,54 +302,16 @@ def check_snake_collision(snake_segments):
        snake_head_rect.clipline(line_2[0:2], line_2[2:4]) or \
        snake_head_rect.clipline(line_3[0:2], line_3[2:4]) or \
        snake_head_rect.clipline(line_4[0:2], line_4[2:4]):
-        print('*LINE collision*')
         clock.tick(1)
-
-        # TO MAKE THE ARRAY BLINK...
-        num_of_blinks = 3
-        blink_interval = 0.3
-        # ?? snake_head = snake_segments[0] ??
-
-        def clear_snake(snake_segments):
-            for segment in snake_segments:
-                x, y = segment
-                pyg.draw.rect(screen, 'black', (x, y, square_size, snake_width))
-
-        clear_snake(snake_segments)
-        for _ in range(num_of_blinks):
-            clear_array()
-            pyg.display.flip()
-            pyg.time.wait(int(blink_interval * 1000)) 
-
-            draw_array(board_color_1, board_color_2)
-            pyg.display.flip()
-            pyg.time.wait(int(blink_interval * 1000))
-
-        # TO CHANGE SCREENS...
-        pyg.time.wait(int(blink_interval * 7000)) 
-        game_screen = False
-        end_screen = True
+        blink_array()
 
     for segment in snake_segments[1:]:
         x, y = segment[0], segment[1]
         segment_rect = pyg.Rect(x, y, square_size, square_size)
         if snake_head_rect.colliderect(segment_rect):
-            print('*SELF collision*')
+            blink_array(self_collision=True)
     
     # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
-
-
-pellet_counter = 0
-def pellet_counter(snake_segments):
-    x, y = snake_segments[0]
-    snake_head_rect = pyg.Rect(x, y, square_size, square_size)
-
-    if snake_head_rect.colliderect(get_pellet_rect()):
-        print('*PELLET collision')
-        #pellet_counter += 1
-        #print(pellet_counter)
-
-
 
 
 
@@ -508,7 +531,7 @@ while True:
         clock.tick(10)
 
         #$$$$
-        pellet_counter(snake_segments)
+        pellet_tracker(snake_segments)
 
 
         # TO CREATE MAC DISPLAY NAME...
@@ -606,12 +629,16 @@ while True:
         mouse_pos = pyg.mouse.get_pos()
         pyg.display.set_caption("Final Screen")
 
-        # PLACEHOLDER
+        # PLACEHOLDER...
+        # this is a text layout example!!!
         title_font = pyg.font.Font(None,80)
         title_height = height//2-20
         title_title = title_font.render("testing! testing!", True, gen_col)
         title_rect = title_title.get_rect(center=(width//2, title_height))
         screen.blit(title_title, title_rect)
+        # this is a text layout example!!!s
+
+        win_lose_info = #PLACEHOLDER!!!
 
         # EVENTS CATCHER...
         for event in pyg.event.get():
