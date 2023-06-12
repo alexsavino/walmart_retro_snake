@@ -29,8 +29,8 @@ clock = pyg.time.Clock()
 # INITIALIZING SCREENS...
 title_screen = False
 option_screen = False
-game_screen = True
-end_screen = False
+game_screen = False
+end_screen = True
 
 # TO CREATE MAC DISPLAY NAME IN THE CASE OF NO USERNAME...
 animal_list = ['Fox','Robin','Chipmunk','Squirrel','Deer']
@@ -255,6 +255,7 @@ def draw_pellet(pellet_color):
     # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
 
 pellet_counter = 0
+pellet_counter_history = []
 print(type(pellet_counter))
 
 def pellet_tracker(snake_segments):
@@ -311,7 +312,7 @@ def check_snake_collision(snake_segments):
         if snake_head_rect.colliderect(segment_rect):
             blink_array(self_collision=True)
     
-    # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
+    # !! IF YOU COLLIDE ***WITH YOURSELF*** YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
 
 
 
@@ -616,35 +617,71 @@ while True:
 
         # ?? WE NEED TO PUT BOUNDARIES SO THAT THE SNAKE CRASHES INTO WALLS / ITSELF
 
-        # LENGHT COUNTER???
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     # this is what should be presented SHOULD A GAME BE FINISHED!
-    # 1. the results - 'YOU LOST', 'YOU WON'
+    # 1. the results - the # of pellets
     # 2. 'play again!!'
     # 3. (settings?)
+    # 4. high score: 
+
+    pellet_counter = 17
+    pellet_counter_history.append(pellet_counter)
 
     while end_screen:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
         pyg.display.set_caption("Final Screen")
 
-        # PLACEHOLDER...
+        back_arrow()
+        back_arrow_polygon_option = back_arrow()
+
+        '''
         # this is a text layout example!!!
         title_font = pyg.font.Font(None,80)
         title_height = height//2-20
         title_title = title_font.render("testing! testing!", True, gen_col)
         title_rect = title_title.get_rect(center=(width//2, title_height))
         screen.blit(title_title, title_rect)
-        # this is a text layout example!!!s
+        # this is a text layout example!!!
+        '''
 
-        win_lose_info = #PLACEHOLDER!!!
+        # TO PRINT PELLET ROUND INFORMATION...
+        num_of_pellets = pellet_counter
+        num_font = pyg.font.Font(None, 50)
+        pellet_font = pyg.font.Font(None, 30)
+
+        num_box_height = height // 2 - 100
+        num_info = num_font.render(str(pellet_counter), True, gen_col)
+        pellet_word = pellet_font.render("PELLETS", True, gen_col)
+        num_rect = num_info.get_rect(center=(width // 2 - 10, num_box_height))
+        pellet_rect = pellet_word.get_rect(center=(width // 2 + 60, num_box_height))
+        screen.blit(num_info, num_rect)
+        screen.blit(pellet_word, pellet_rect)
+
+
+        # TO PRINT HIGH SCORE INFORMATION...
+
+
+
+        #high_score = max(pellet_counter_history)
+        #if (high_score == pellet_counter):
+
+        # TO ASK USER IF THEY WANT TO PLAY AGAIN...
 
         # EVENTS CATCHER...
         for event in pyg.event.get():
             if event.type == pyg.QUIT:
                 pyg.quit()
-
+            # WHAT HAPPENS WHEN THE MOUSE IS CLICKED...
+            elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
+                # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
+                if is_inside_arrow(mouse_pos, back_arrow_polygon_option):
+                    game_screen = True
+                    # ?? THIS IS WHERE YOU'RE HAD TO PRESENT THE RESULTS OF THE 
+                    #   LAST GAME AND CAPTURE THAT MEMORY SOMEHOW... ??
+                    end_screen = False
+                    break
         pyg.display.flip()
 
 pyg.quit()
