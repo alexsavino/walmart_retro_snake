@@ -15,79 +15,59 @@ import numpy as np
 import random as rand
 import sys
 
-'''
-import sys
-sys.stdout = open('output.log', 'w')
-'''
 
 # INITIALIZING THE GENERAL SCREEN...
 pyg.init()
 width, height = 640, 480
 screen = pyg.display.set_mode((width,height))
-gen_col = 'white'  # gen_option_sc_txt_color
+gen_col = 'white'
 clock = pyg.time.Clock()
 
 # INITIALIZING SCREENS...
 title_screen = False
 option_screen = False
 game_screen = False
-end_screen = True
+end_screen = True 
 
 # TO CREATE MAC DISPLAY NAME IN THE CASE OF NO USERNAME...
-animal_list = ['Fox','Robin','Chipmunk','Squirrel','Deer']
-round_animal_name = rand.choice(animal_list)
+round_animal_name = rand.choice(['Fox','Robin','Chipmunk','Squirrel','Deer'])
     
 # INSTANTIATING THE ARRAY SQUARE PROPERTIES...
 square_size = 18
-row_span, col_span = (width-75), (height-100)
-num_rows = col_span // square_size
-num_cols = row_span // square_size
+row_span, col_span = (width-75),(height-100)
+num_rows = col_span//square_size
+num_cols = row_span//square_size
 
 # TO POSITION THE ARRAY...
-board_x = (width - (num_cols * square_size)) / 2
+board_x = (width-(num_cols*square_size))/2
 board_y = 78
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # FUNCTIONS THAT RELATE THE SCREENS...
-def back_arrow():
-    arrow_color = 'red'
-
-    # TO DRAW THE NEUTRAL ARROW OUTLINE...
-    x = 3
-    y = 5
+def draw_arrow(arrow_type):
     dilation = 5
-    back_arrow_vertices = list(dilation * np.array([(x, y), (x+3, y+2.5), (x+3, y+1.25), 
-                (x+7, y+1.25), (x+7, y-1.25), (x+3, y-1.25), (x+3, y-2.5)]))
-    pyg.draw.polygon(screen, arrow_color, back_arrow_vertices, width=2)
-
-    # TO ENABLE HOVER COLOR...
-    if is_inside_arrow(mouse_pos, back_arrow_vertices):
-        polygon_surface = pyg.Surface((width,height), pyg.SRCALPHA)
-        pyg.draw.polygon(polygon_surface, arrow_color, back_arrow_vertices)
-        screen.blit(polygon_surface, (0, 0))
-    return back_arrow_vertices
-
-
-def forward_arrow():
-    arrow_color = 'green'
-
-    # TO DRAW THE NEUTRAL ARROW OUTLINE...
-    x = 124.5
-    y = 90
-    dilation = 5
-    forward_arrow_vertices = list(dilation * np.array([(x, y), (x-3, y+2.5), (x-3, y+1.25), 
+    if (arrow_type == 'forward'):
+        arrow_color = 'green'
+        x, y = 124.5, 90
+        arrow_vertices = list(dilation * np.array([(x, y), (x-3, y+2.5), (x-3, y+1.25), 
                 (x-7, y+1.25), (x-7, y-1.25), (x-3, y-1.25), (x-3, y-2.5)]))
-    pyg.draw.polygon(screen, arrow_color, forward_arrow_vertices, width=2)
-
+        pyg.draw.polygon(screen, arrow_color, arrow_vertices, width=2)
+    elif (arrow_type == 'backward'):
+        arrow_color = 'red'
+        x, y = 3, 5
+        arrow_vertices = list(dilation * np.array([(x, y), (x+3, y+2.5), (x+3, y+1.25), 
+            (x+7, y+1.25), (x+7, y-1.25), (x+3, y-1.25), (x+3, y-2.5)]))
+        pyg.draw.polygon(screen, arrow_color, arrow_vertices, width=2)
     # TO ENABLE HOVER COLOR...
-    if is_inside_arrow(mouse_pos, forward_arrow_vertices):
+    if is_inside_shape(mouse_pos, arrow_vertices):
         polygon_surface = pyg.Surface((width,height), pyg.SRCALPHA)
-        pyg.draw.polygon(polygon_surface, arrow_color, forward_arrow_vertices)
+        pyg.draw.polygon(polygon_surface, arrow_color, arrow_vertices)
         screen.blit(polygon_surface, (0, 0))
-    return forward_arrow_vertices
+    return arrow_vertices
+    
 
-def is_inside_arrow(point,arrow_vertices):
+def is_inside_shape(point,arrow_vertices):
     x, y = point
     n = len(arrow_vertices)
     inside = False
@@ -105,12 +85,19 @@ def is_inside_arrow(point,arrow_vertices):
     return inside
 
 
-# 
-def print_text(font_size, text, center_coords):
+def print_center_text(font_size, text, center_coords):
     font = pyg.font.Font(None,font_size)
     title = font.render(text, True, gen_col)
     rect = title.get_rect(center=center_coords)
     screen.blit(title, rect)
+    return rect
+
+def print_topleft_text(font_size, text, topleft):
+    font = pyg.font.Font(None,font_size)
+    surface = font.render(text, True, gen_col)
+    rect = surface.get_rect(topleft=topleft)
+    screen.blit(surface, rect)
+    return rect
 
 
 def color_bar_caption(color, q_top):
@@ -119,7 +106,6 @@ def color_bar_caption(color, q_top):
     color_height = q_top + color_height_adj
     color_rect = color.get_rect(center=(color_width, color_height))
     screen.blit(color, color_rect)
-
 
 color_options = ['RED', 'ORANGE', 'YELLOW', 'GREEN', 'BLUE', 'PURPLE']
 def color_bar_system(q_rect, q_top, line_identifier):
@@ -141,31 +127,27 @@ def color_bar_system(q_rect, q_top, line_identifier):
             color = a_font.render(str(color_options[color_index]), True, gen_col)
             color_bar_caption(color, q_top)
             hovered_colors[line_identifier] = color_options[color_index]
-
-            # Draw rectangle around the hovered box
             pyg.draw.rect(screen, gen_col, given_box, width=2)
 
     if line_identifier in hovered_colors:
         color = a_font.render(str(hovered_colors[line_identifier]), True, gen_col)
         color_bar_caption(color, q_top)
 
-        # Draw rectangle around the last hovered box
         last_hovered_box_index = color_options.index(hovered_colors[line_identifier])
         last_hovered_box_x = q_rect.right + 30 + (last_hovered_box_index * color_box_width)
         last_hovered_box_y = q_top + color_box_height_adj
         last_hovered_box = pyg.Rect(last_hovered_box_x, last_hovered_box_y, color_box_width, color_box_width)
         pyg.draw.rect(screen, gen_col, last_hovered_box, width=2)
 
-        if line_identifier == 'snake':
+        if (line_identifier == 'snake'):
             snake_color = hovered_colors[line_identifier]
             return snake_color
-        elif line_identifier == 'pellet':
+        elif (line_identifier == 'pellet'):
             pellet_color = hovered_colors[line_identifier]
             return pellet_color
-        elif line_identifier == 'board':
+        elif (line_identifier == 'board'):
             board_color = hovered_colors[line_identifier]
             return board_color
-
 hovered_colors = {}
 
 
@@ -192,7 +174,6 @@ def blink_array(self_collision=False):
     global game_screen, end_screen
     num_of_blinks = 3
     blink_interval = 0.3
-    # ?? snake_head = snake_segments[0] ??
 
     clear_snake(snake_segments)
     if (self_collision == True):
@@ -208,8 +189,7 @@ def blink_array(self_collision=False):
 
     # TO CHANGE SCREENS...
     pyg.time.wait(int(blink_interval * 5000)) 
-    game_screen = False
-    end_screen = True
+    end_screen, game_screen = True, False
 
 
 def draw_snake(snake_segments):
@@ -223,28 +203,73 @@ def clear_snake(snake_segments):
         pyg.draw.rect(screen, 'black', (x, y, square_size, snake_width))
 
 
-pellet_x = 0
-pellet_y = 0
+
+def add_snake_segment(snake_segments):
+    # 1. to find the direction categorize the differences in the last two squares
+    # 2. then add on in the opposite direction
+    horizontal_diff = snake_segments[-2][0] - snake_segments[-1][0]
+    vertical_diff = snake_segments[-2][1] - snake_segments[-1][1]
+
+    if (horizontal_diff > 0):
+        segment_x = snake_segments[-1][0] + square_size
+        segment_y = snake_segments[-1][1]
+    elif (horizontal_diff < 0):
+        segment_x = snake_segments[-1][0] - square_size
+        segment_y = snake_segments[-1][1]
+    elif (vertical_diff > 0):
+        segment_x = snake_segments[-1][0]
+        segment_y = snake_segments[-1][1] - square_size
+    elif (vertical_diff < 0):
+        segment_x = snake_segments[-1][0]
+        segment_y = snake_segments[-1][1] + square_size
+        
+    snake_segments.append((segment_x,segment_y))
+
+
 def get_pellet_rect():
     pellet_rect = pyg.Rect(pellet_x, pellet_y, square_size, square_size)
     return pellet_rect
 
-def draw_pellet(pellet_color):
+pellet_x = 0
+pellet_y = 0
+def draw_pellet(pellet_color,respawn=False):
     global pellet_x, pellet_y, board_x, board_y, pellet_rect
 
     if pellet_x == 0 and pellet_y == 0:
-        pellet_x = board_x + (rand.randint(1, num_cols - 1) * square_size)
-        pellet_y = board_y + (rand.randint(1, num_rows - 1) * square_size)
+        pellet_x = board_x + (rand.randint(1, num_cols-1)*square_size)
+        pellet_y = board_y + (rand.randint(1, num_rows-1)*square_size)
 
     pellet_rect = get_pellet_rect()
 
     # TO DRAW A BLACK BORDER AROUND THE PELLET...
-    pyg.draw.line(screen, 'black', (pellet_x, pellet_y), (pellet_x + square_size, pellet_y), width=1)
-    pyg.draw.line(screen, 'black', (pellet_x + square_size, pellet_y), (pellet_x + square_size, pellet_y + square_size), width=1)
-    pyg.draw.line(screen, 'black', (pellet_x + square_size, pellet_y + square_size), (pellet_x, pellet_y + square_size), width=1)
-    pyg.draw.line(screen, 'black', (pellet_x, pellet_y + square_size), (pellet_x, pellet_y), width=1)
-
+    pyg.draw.line(screen, 'black', (pellet_x,pellet_y), (pellet_x+square_size,pellet_y), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x+square_size,pellet_y), (pellet_x+square_size,pellet_y+square_size), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x+square_size,pellet_y+square_size), (pellet_x,pellet_y+square_size), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x, pellet_y+square_size), (pellet_x,pellet_y), width=1)
     pyg.draw.rect(screen, pellet_color, pellet_rect)
+
+pellet_counter = 0
+pellet_counter_history = []
+
+def pellet_tracker(snake_segments, pellet_color):
+    global pellet_counter
+    global pellet_x, pellet_y
+    x, y = snake_segments[0]
+    snake_head_rect = pyg.Rect(x, y, square_size, square_size)
+    pellet_rect = get_pellet_rect()
+
+    if snake_head_rect.colliderect(pellet_rect):
+        pellet_counter += 1
+        pellet_x = board_x + (rand.randint(1, num_cols - 1) * square_size)
+        pellet_y = board_y + (rand.randint(1, num_rows - 1) * square_size)
+        draw_pellet(pellet_color, True)
+        
+        add_snake_segment(snake_segments)
+        # ?? ADD A NEW SNAKE SEGMENT ONTO THE END ??
+
+        # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
+    return pellet_counter
+
 
 def draw_end_screen_pellet(pellet_color):
 
@@ -256,28 +281,6 @@ def draw_end_screen_pellet(pellet_color):
     pyg.draw.line(screen, 'black', (pellet_x + square_size, pellet_y + square_size), (pellet_x, pellet_y + square_size), width=1)
     pyg.draw.line(screen, 'black', (pellet_x, pellet_y + square_size), (pellet_x, pellet_y), width=1)
     pyg.draw.rect(screen, pellet_color, pellet_rect)
-
-
-    # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
-
-pellet_counter = 0
-pellet_counter_history = []
-#print(type(pellet_counter))
-
-def pellet_tracker(snake_segments):
-    global pellet_counter
-    x, y = snake_segments[0]
-    snake_head_rect = pyg.Rect(x, y, square_size, square_size)
-
-    if snake_head_rect.colliderect(get_pellet_rect()):
-        #print('*PELLET collision')
-        pellet_counter += 1
-        
-        # ?? CLEAR PELLET ??
-        # ?? PRINT NEW PELLET ??
-        # ?? ADD A NEW SNAKE SEGMENT ONTO THE END ??
-
-
 
 
 
@@ -299,6 +302,7 @@ def draw_border_lines():
     pyg.draw.line(screen, gen_col, line_3[0:2], line_3[2:4], width=1)
     pyg.draw.line(screen, gen_col, line_4[0:2], line_4[2:4], width=1)
 
+
 def check_snake_collision(snake_segments):
     global game_screen, end_screen
     x, y = snake_segments[0]
@@ -316,8 +320,6 @@ def check_snake_collision(snake_segments):
         segment_rect = pyg.Rect(x, y, square_size, square_size)
         if snake_head_rect.colliderect(segment_rect):
             blink_array(self_collision=True)
-    
-    # !! IF YOU COLLIDE ***WITH YOURSELF*** YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
 
 
 def draw_end_screen_dec_box(board_color):
@@ -350,6 +352,17 @@ def draw_end_screen_dec_box(board_color):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # PRIMARY GAME LOOP...
 while True:
@@ -357,21 +370,18 @@ while True:
     SPACE_timer = 0
 
     while title_screen:
-        pyg.display.set_caption("Snake Game")
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
+        pyg.display.set_caption("Snake Game")
 
         # TO MAKE THE TITLE + SUBTITLE...
-        print_text(80, "SNAKE GAME", (width//2, height//2-20))
-        print_text(30, "PRESS                TO START", (width//2, height//2 + 25))
+        print_center_text(80, "SNAKE GAME", (width//2, height//2-20))
+        print_center_text(30, "PRESS                TO START", (width//2, height//2+25))
 
-        '''
-        SPACE_font = pyg.font.Font(None,35)
         # TO MAKE THE 'SPACE' BLINK...
         SPACE_visible = True
         SPACE_timer += 1
-        time_not_visible = 825
-        time_visible = 700
+        time_not_visible, time_visible = 825, 700
 
         if (SPACE_timer > time_visible) and (SPACE_timer < time_not_visible):
             SPACE_visible = not SPACE_visible
@@ -379,11 +389,7 @@ while True:
             SPACE_timer = 0
 
         if SPACE_visible:
-            SPACE_x = width//2-54
-            SPACE_surface = SPACE_font.render("SPACE", True, gen_col)
-            SPACE_rect = SPACE_surface.get_rect(topleft=(SPACE_x, subtitle_height-13))
-            screen.blit(SPACE_surface, SPACE_rect)
-        '''
+            print_topleft_text(35, "SPACE", (width//2-54, height//2+12))
 
         # EVENTS CAPTURE...
         for event in pyg.event.get():
@@ -403,34 +409,28 @@ while True:
     q_font = pyg.font.Font(None, 25)
     a_font = pyg.font.Font(None, 22)
 
-    # LIST OF OPTION QUESTIONS...
-    name_question = "1. WHAT'S YOUR NAME?: "
-    username = ""
-    snake_color_question = "2. SNAKE COLOR?: "
-    pellet_color_question = "3. PELLET COLOR?: "
-    board_color_question = "4. BOARD COLOR?: "
-
     while option_screen:
         screen.fill('black')
-        pyg.display.set_caption("Game Settings")
         mouse_pos = pyg.mouse.get_pos()
+        pyg.display.set_caption("Game Settings")
         draw_end_screen_dec_box(gen_col)
 
         # TO CREATE SCREEN-BUTTONS!
-        back_arrow_polygon_option = back_arrow()
-        forward_arrow_polygon_option = forward_arrow()
+        back_arrow_polygon_option = draw_arrow('backward')
+        forward_arrow_polygon_option = draw_arrow('forward')
 
         # SCREEN TITLE...
-        option_title_font = pyg.font.Font(None,50)
-        option_title = option_title_font.render("GAME SETTINGS", True, gen_col)
-        option_title_height = 46
-        option_title_rect = option_title.get_rect(center=(width//2,option_title_height))
-        screen.blit(option_title, option_title_rect)
-
+        print_center_text(50, "GAME SETTINGS", (width//2,46))
 
         space_between_questions = 88
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 1: NAME
+
+        q_font = pyg.font.Font(None, 25)
+        a_font = pyg.font.Font(None, 22)
+
+        name_question = "1. WHAT'S YOUR NAME?: "
+        username = ""
 
         # TO POSITION BOTH QUESTION / ANSWER...
         q_left, q_top = 75, 100
@@ -438,7 +438,9 @@ while True:
         q_rect = q_surface.get_rect(topleft=(q_left, q_top))
         screen.blit(q_surface, q_rect)
 
-        a_top, a_left = (q_top+1.5), q_rect.right + 3
+        #print_topleft_text(25, "1. WHAT'S YOUR NAME?: ", (q_left, q_top))
+
+        a_top, a_left = (q_top+1.5), (q_rect.right+3)
         a_surface = a_font.render(username, True, gen_col)
         a_rect = a_surface.get_rect(topleft=(a_left, a_top))
         screen.blit(a_surface, a_rect)
@@ -455,29 +457,22 @@ while True:
             cursor_rect = cursor_surface.get_rect(topleft=(cursor_x, a_top))
             screen.blit(cursor_surface, cursor_rect)
 
-
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 2: SNAKE COLOR
         snake_q_left, snake_q_top = q_left, (q_top+space_between_questions)
-        snake_q_surface = q_font.render(snake_color_question, True, gen_col)
-        snake_q_rect = snake_q_surface.get_rect(topleft=(snake_q_left,snake_q_top))
-        screen.blit(snake_q_surface,snake_q_rect)
+        snake_q_rect = print_topleft_text(25, "2. SNAKE COLOR?: ", (snake_q_left,snake_q_top))
         color_bar_system(snake_q_rect,snake_q_top,'snake')
 
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 4: PELLET COLOR
         pellet_q_left, pellet_q_top = q_left, (snake_q_top+space_between_questions)
-        pellet_q_surface = q_font.render(pellet_color_question, True, gen_col)
-        pellet_q_rect = pellet_q_surface.get_rect(topleft=(pellet_q_left,pellet_q_top))
-        screen.blit(pellet_q_surface,pellet_q_rect)
+        pellet_q_rect = print_topleft_text(25, "3. PELLET COLOR?: ", (pellet_q_left,pellet_q_top))
         color_bar_system(pellet_q_rect,pellet_q_top,'pellet')
 
         #------------------------------------------------------------------------------------------------------------------
         # PREFERENCE 3: BOARD COLOR
         board_q_left, board_q_top = q_left, (pellet_q_top+space_between_questions)
-        board_q_surface = q_font.render(board_color_question, True, gen_col)
-        board_q_rect = board_q_surface.get_rect(topleft=(board_q_left,board_q_top))
-        screen.blit(board_q_surface,board_q_rect)
+        board_q_rect = print_topleft_text(25, "4. BOARD COLOR?: ", (board_q_left,board_q_top))
         color_bar_system(board_q_rect,board_q_top,'board')
 
 
@@ -486,32 +481,30 @@ while True:
             if (event.type == pyg.QUIT):
                 pyg.quit()
             # TO ENTER USERNAME...
-            elif event.type == KEYDOWN:
+            elif (event.type == KEYDOWN):
                 if (event.key == K_BACKSPACE):
                     username = username[:-1]
-
                 elif event.unicode.isalpha() or event.unicode.isspace():
                     if (event.unicode != '\t') and (event.key != 13) and (len(username) < 20):
                         username += event.unicode
             # WHAT HAPPENS WHEN THE MOUSE IS CLICKED...
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
                 # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
-                if is_inside_arrow(mouse_pos, back_arrow_polygon_option):
-                    title_screen = True
-                    option_screen = False
+                if is_inside_shape(mouse_pos, back_arrow_polygon_option):
+                    title_screen, option_screen = True, False
                     break
                 # WHAT HAPPENS IF FORWARD BUTTON IS PRESSED...
-                if is_inside_arrow(mouse_pos, forward_arrow_polygon_option):
-                    game_screen = True
-                    option_screen = False
+                elif is_inside_shape(mouse_pos, forward_arrow_polygon_option):
+                    game_screen, option_screen = True, False
                     break
 
         pyg.display.flip()
 
-    username = username.strip()
+    #username = username.strip()
 
 # ?? HOW TO MAKE IT SO THAT SOMEONE'S NAME STAYS EVEN AS YOU 
 #    GO BACK AND FORTH BETWEEN OPTION AND GAME SCREENS??
+
 # ?? maybe i can make it so that when you do hit enter on your name quotes appear? 
 #   maybe a color change? put a white box around it? something to differentiate
 #   how could you go back and edit it yourself?
@@ -526,7 +519,7 @@ while True:
     pellet_color = 'RED' #TEST_PELLET_COLOR
 
     # TO INSTANTIATE THE SNAKE...
-    snake_box_length = 3   # ?? IS THIS SOMETHING TO PULL OUT OF THIS WHILE LOOP?
+    snake_box_length = 3 
     snake_length = snake_box_length * square_size
     snake_width = square_size
 
@@ -545,78 +538,75 @@ while True:
     # TO DETERMINE BOTH BOARD COLORS...
     board_colors = [['red','tomato'],['chocolate','orange'],['gold','yellow'],
         ['green','limegreen'],['blue','royalblue'],['darkviolet','mediumorchid']]
-    
     board_color_1 = board_colors[color_options.index(board_color)][0]
     board_color_2 = board_colors[color_options.index(board_color)][1]
     
-    
+    pellet_counter = 0
+
     while game_screen:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
         clock.tick(10)
 
-        #$$$$
-        pellet_tracker(snake_segments)
-
-
         # TO CREATE MAC DISPLAY NAME...
+        username = "" # !! PLACEHOLDER !!
         if username == "":
             anonymous_username
         else:
             pyg.display.set_caption("{}'s Snake Game".format(username))
 
-        # TO CREATE SCREEN-BUTTONS!
-        back_arrow_polygon_option = back_arrow()
-        # ?? the options will be to either 1. quit the game and go to the option screen ....
-
-        # SCREEN TITLE...
-        print_text(50, "!~SNAKE GAME~!", (width//2,46))
-
-        # TO DRAW THE ARRAY... 
+        # TO CREATE SCREEN BUTTONS / SCREEN TITLE / ARRAY / SNAKE...
+        back_arrow_polygon_option = draw_arrow('backward')
+        print_center_text(50, "SNAKE GAME...", (width//2-125,46))
         draw_array(board_color_1,board_color_2)
-
-        # TO DRAW THE SNAKE...
         snake_segments.pop()
+
+        pellet_counter = pellet_tracker(snake_segments, pellet_color)
+        if (len(str(pellet_counter)) == 1):
+            print_center_text(38, str(pellet_counter), (width//2+155,51))
+        elif (len(str(pellet_counter)) == 2):
+            print_center_text(38, str(pellet_counter), (width//2+150,50))
+        print_center_text(25, "PELLETS", (width//2+210,52))
+
 
         # EVENTS CATCHER...
         for event in pyg.event.get():
-            if event.type == pyg.QUIT:
+            if (event.type == pyg.QUIT):
                 pyg.quit()
             # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
-                if is_inside_arrow(mouse_pos, back_arrow_polygon_option):
+                if is_inside_shape(mouse_pos, back_arrow_polygon_option):
                 # 1. 'are you sure you wanna quit the game?' y/n
                 #   (and it PAUSES YOUR GAME)
                 # 2. 
-                    option_screen = True
-                    game_screen = False
+                    option_screen, game_screen = True, False
                     break
             
             elif event.type == KEYDOWN:
-                if event.key == pyg.K_UP and snake_direction != 'down':
+                if (event.key == pyg.K_UP) and (snake_direction != 'down'):
                     snake_direction = 'up'
-                elif event.key == pyg.K_DOWN and snake_direction != 'up':
+                elif (event.key == pyg.K_DOWN) and (snake_direction != 'up'):
                     snake_direction = 'down'
-                elif event.key == pyg.K_LEFT and snake_direction != 'right':
+                elif (event.key == pyg.K_LEFT) and (snake_direction != 'right'):
                     snake_direction = 'left'
-                elif event.key == pyg.K_RIGHT and snake_direction != 'left':
+                elif (event.key == pyg.K_RIGHT) and (snake_direction != 'left'):
                     snake_direction = 'right'
 
         # TO CALCULATE NEW HEAD SQUARE + SHIFT UP OTHER SQUARES...
-        if snake_direction == 'up':
+        if (snake_direction == 'up'):
             new_segment_x = snake_segments[0][0]
-            new_segment_y = snake_segments[0][1] - square_size
-        elif snake_direction == 'down':
+            new_segment_y = snake_segments[0][1]-square_size
+        elif (snake_direction == 'down'):
             new_segment_x = snake_segments[0][0]
-            new_segment_y = snake_segments[0][1] + square_size
-        elif snake_direction == 'left':
-            new_segment_x = snake_segments[0][0] - square_size
+            new_segment_y = snake_segments[0][1]+square_size
+        elif (snake_direction == 'left'):
+            new_segment_x = snake_segments[0][0]-square_size
             new_segment_y = snake_segments[0][1]
-        elif snake_direction == 'right':
-            new_segment_x = snake_segments[0][0] + square_size
+        elif (snake_direction == 'right'):
+            new_segment_x = snake_segments[0][0]+square_size
             new_segment_y = snake_segments[0][1]
 
-        snake_segments.insert(0, (new_segment_x, new_segment_y))
+        snake_segments.insert(0, (new_segment_x,new_segment_y))
 
         draw_snake(snake_segments)
         draw_pellet(pellet_color)
@@ -626,70 +616,65 @@ while True:
         pyg.display.flip()
 
         # ?? maybe the snake itself can be rounded at its head / tail? .. take up 1/2 box
-         
-        # ?? WE NEED TO INCLUDE AN PELLET!!!! COUNTER!!!!
-        #   (WE NEED TO INCLUDE A TIMER?
 
         # ?? WE HAVE TO RANDOMIZE WHERE THE FIRST PELLET GOES AND WHERE THEY GO!
         #   THEY JUST CAN'T SPAWN ON TOP OF THE SNAKE
 
-        # ?? WE NEED TO PUT BOUNDARIES SO THAT THE SNAKE CRASHES INTO WALLS / ITSELF
-
+        # ?? HOW TO DO A PAUSE BUTTON ??
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    # this is what should be presented SHOULD A GAME BE FINISHED!
-    # 1. the results - the # of pellets
-    # 2. 'play again!!'
-    # 3. (settings?)
-    # 4. high score: 
 
-    pellet_counter = 17   #!! PLACEHOLDER !!
     pellet_counter_history.append(pellet_counter)
-
+    pellet_counter_history = pellet_counter_history + [99]
     while end_screen:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
         pyg.display.set_caption("Final Screen")
 
-        back_arrow()
-        back_arrow_polygon_option = back_arrow()
+        back_arrow_polygon_option = draw_arrow('backward')
+        # ?? if you hit the back button all you see is ur dead snake unable to move.. ?? 
 
         draw_end_screen_pellet(pellet_color)
         draw_end_screen_dec_box(board_color)
 
-        # TO PRINT PELLET ROUND INFORMATION...
-        print_text(50, str(pellet_counter), (width // 2 - 25, height // 2 - 100))
-        print_text(30, "PELLETS", (width // 2 + 45, height // 2 - 100))
+        # TO PRINT PELLET ROUND INFO / HIGH SCORE INFO / ...
+        if (pellet_counter == 1):
+            print_center_text(50, str(pellet_counter), (width//2-23,height//2-100))
+            print_center_text(30, "PELLET", (width//2+43,height//2-100))
+        else: 
+            print_center_text(50, str(pellet_counter), (width//2-25,height//2-100))
+            print_center_text(30, "PELLETS", (width//2+45,height//2-100))
+            
+        if max(pellet_counter_history) >= 100:
+            print_center_text(57, str(max(pellet_counter_history)), (width//2+105,height//2-24))
+            print_center_text(50, "High Score: ", (width//2-33,height//2-24))
+        else:
+            print_center_text(57, str(max(pellet_counter_history)), (width//2+100,height//2-20))
+            print_center_text(50, "High Score: ", (width//2-25,height//2-20))
 
-        # TO PRINT HIGH SCORE WORD...
-        print_text(50, "High Score: ", (width//2 - 25, height//2-20))
-
-
-        # TO PRINT HIGH SCORE INFORMATION... 
-        #       ?? should i prepare for a printing difference between 2/3 dig numbers?
-        highscore = max(pellet_counter_history)
-        print_text(57, str(highscore), (width//2 + 100, height//2-20))
-
-
-
-        # !! PLAY AGAIN??? !!
-        # TO ASK USER IF THEY WANT TO PLAY AGAIN...
-
-
+        # TO PRINT PLAY AGAIN OPTION...
+        play_again_rect = print_center_text(70, "PLAY AGAIN?", (width//2, height//2+85))
+        inner_rect = pyg.Rect(play_again_rect.left-10, play_again_rect.top-15, play_again_rect.width+18, play_again_rect.height+20)
+        pyg.draw.rect(screen, gen_col, inner_rect, width=1)
+        play_again_vertices = [(inner_rect.left, inner_rect.top), (inner_rect.right, inner_rect.top), 
+            (inner_rect.right, inner_rect.bottom), (inner_rect.left, inner_rect.bottom)]
 
         # EVENTS CATCHER...
         for event in pyg.event.get():
-            if event.type == pyg.QUIT:
+            if (event.type == pyg.QUIT):
                 pyg.quit()
             # WHAT HAPPENS WHEN THE MOUSE IS CLICKED...
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
                 # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
-                if is_inside_arrow(mouse_pos, back_arrow_polygon_option):
-                    game_screen = True
+                if is_inside_shape(mouse_pos, back_arrow_polygon_option):
+                    game_screen, end_screen = True, False
                     # ?? THIS IS WHERE YOU'RE HAD TO PRESENT THE RESULTS OF THE 
                     #   LAST GAME AND CAPTURE THAT MEMORY SOMEHOW... ??
-                    end_screen = False
                     break
+                elif is_inside_shape(mouse_pos, play_again_vertices):
+                    option_screen, end_screen = True, False
+                    break
+
         pyg.display.flip()
 
-pyg.quit()
+pyg.quit() 
