@@ -14,6 +14,7 @@ from pygame.locals import *
 import numpy as np
 import random as rand
 import sys
+
 '''
 import sys
 sys.stdout = open('output.log', 'w')
@@ -38,8 +39,7 @@ round_animal_name = rand.choice(animal_list)
     
 # INSTANTIATING THE ARRAY SQUARE PROPERTIES...
 square_size = 18
-row_span = (width-75)
-col_span = (height-100)
+row_span, col_span = (width-75), (height-100)
 num_rows = col_span // square_size
 num_cols = row_span // square_size
 
@@ -66,7 +66,6 @@ def back_arrow():
         polygon_surface = pyg.Surface((width,height), pyg.SRCALPHA)
         pyg.draw.polygon(polygon_surface, arrow_color, back_arrow_vertices)
         screen.blit(polygon_surface, (0, 0))
-     
     return back_arrow_vertices
 
 
@@ -86,9 +85,7 @@ def forward_arrow():
         polygon_surface = pyg.Surface((width,height), pyg.SRCALPHA)
         pyg.draw.polygon(polygon_surface, arrow_color, forward_arrow_vertices)
         screen.blit(polygon_surface, (0, 0))
-
     return forward_arrow_vertices
-
 
 def is_inside_arrow(point,arrow_vertices):
     x, y = point
@@ -106,6 +103,14 @@ def is_inside_arrow(point,arrow_vertices):
                             inside = not inside
         p1x, p1y = p2x, p2y
     return inside
+
+
+# 
+def print_text(font_size, text, center_coords):
+    font = pyg.font.Font(None,font_size)
+    title = font.render(text, True, gen_col)
+    rect = title.get_rect(center=center_coords)
+    screen.blit(title, rect)
 
 
 def color_bar_caption(color, q_top):
@@ -212,27 +217,17 @@ def draw_snake(snake_segments):
         x, y = segment
         pyg.draw.rect(screen, snake_color, (x, y, square_size, snake_width))
 
-
 def clear_snake(snake_segments):
     for segment in snake_segments:
         x, y = segment
         pyg.draw.rect(screen, 'black', (x, y, square_size, snake_width))
 
-'''
-#def add_snake_segment(snake_segments):
-    # this has to look at the last few blocks, determine which block is the last block and its direction
-    #   based on the block in front of it... then it has to actually add the new block and update 'snake_segments'
-'''
-
-
 
 pellet_x = 0
 pellet_y = 0
 def get_pellet_rect():
-    global pellet_x, pellet_y, square_size
     pellet_rect = pyg.Rect(pellet_x, pellet_y, square_size, square_size)
     return pellet_rect
-
 
 def draw_pellet(pellet_color):
     global pellet_x, pellet_y, board_x, board_y, pellet_rect
@@ -251,12 +246,23 @@ def draw_pellet(pellet_color):
 
     pyg.draw.rect(screen, pellet_color, pellet_rect)
 
+def draw_end_screen_pellet(pellet_color):
+
+    pellet_rect = pyg.Rect(230, 120, square_size*2, square_size*2)
+
+    # TO DRAW A BLACK BORDER AROUND THE PELLET...
+    pyg.draw.line(screen, 'black', (pellet_x, pellet_y), (pellet_x + square_size, pellet_y), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x + square_size, pellet_y), (pellet_x + square_size, pellet_y + square_size), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x + square_size, pellet_y + square_size), (pellet_x, pellet_y + square_size), width=1)
+    pyg.draw.line(screen, 'black', (pellet_x, pellet_y + square_size), (pellet_x, pellet_y), width=1)
+    pyg.draw.rect(screen, pellet_color, pellet_rect)
+
 
     # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
 
 pellet_counter = 0
 pellet_counter_history = []
-print(type(pellet_counter))
+#print(type(pellet_counter))
 
 def pellet_tracker(snake_segments):
     global pellet_counter
@@ -293,7 +299,6 @@ def draw_border_lines():
     pyg.draw.line(screen, gen_col, line_3[0:2], line_3[2:4], width=1)
     pyg.draw.line(screen, gen_col, line_4[0:2], line_4[2:4], width=1)
 
-
 def check_snake_collision(snake_segments):
     global game_screen, end_screen
     x, y = snake_segments[0]
@@ -315,6 +320,34 @@ def check_snake_collision(snake_segments):
     # !! IF YOU COLLIDE ***WITH YOURSELF*** YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
 
 
+def draw_end_screen_dec_box(board_color):
+    box_height = 340
+    line_1_adjustment = 50
+    box_width = width - 2 * line_1_adjustment
+
+    # Calculate the x-coordinate of the box
+    box_x = (width - box_width) // 2
+    # Calculate the y-coordinate of the box
+    box_y = 80
+
+    # Top line coordinates with adjustments
+    line_1_start = box_x
+    line_1_end = box_x + box_width
+    line_1 = (line_1_start, box_y - 1, line_1_end, box_y - 1)
+    # Left line coordinates
+    line_2 = (box_x - 1, box_y, box_x - 1, box_y + box_height - 3)
+    # Right line coordinates
+    line_3 = (box_x + box_width + 1, box_y, box_x + box_width + 1, box_y + box_height - 3)
+    # Bottom line coordinates
+    line_4 = (box_x, box_y + box_height - 2, box_x + box_width, box_y + box_height - 2)
+
+    pyg.draw.line(screen, board_color, line_1[0:2], line_1[2:4], width=1)
+    pyg.draw.line(screen, board_color, line_2[0:2], line_2[2:4], width=1)
+    pyg.draw.line(screen, board_color, line_3[0:2], line_3[2:4], width=1)
+    pyg.draw.line(screen, board_color, line_4[0:2], line_4[2:4], width=1)
+
+
+
 
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -328,22 +361,12 @@ while True:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
 
-        title_font = pyg.font.Font(None,80)
-        subtitle_font = pyg.font.Font(None,30)
-        SPACE_font = pyg.font.Font(None,35)
-
         # TO MAKE THE TITLE + SUBTITLE...
-        title_title = title_font.render("SNAKE GAME", True, gen_col)
-        subtitle = subtitle_font.render("PRESS                TO START", True, gen_col)
-        title_height = height//2-20
-        subtitle_height = height//2 + 25
-        title_rect = title_title.get_rect(center=(width//2, title_height))
-        subtitle_rect = subtitle.get_rect(center=(width//2, subtitle_height))
+        print_text(80, "SNAKE GAME", (width//2, height//2-20))
+        print_text(30, "PRESS                TO START", (width//2, height//2 + 25))
 
-        screen.blit(title_title, title_rect)
-        screen.blit(subtitle, subtitle_rect)
-
-
+        '''
+        SPACE_font = pyg.font.Font(None,35)
         # TO MAKE THE 'SPACE' BLINK...
         SPACE_visible = True
         SPACE_timer += 1
@@ -360,7 +383,7 @@ while True:
             SPACE_surface = SPACE_font.render("SPACE", True, gen_col)
             SPACE_rect = SPACE_surface.get_rect(topleft=(SPACE_x, subtitle_height-13))
             screen.blit(SPACE_surface, SPACE_rect)
-
+        '''
 
         # EVENTS CAPTURE...
         for event in pyg.event.get():
@@ -391,6 +414,7 @@ while True:
         screen.fill('black')
         pyg.display.set_caption("Game Settings")
         mouse_pos = pyg.mouse.get_pos()
+        draw_end_screen_dec_box(gen_col)
 
         # TO CREATE SCREEN-BUTTONS!
         back_arrow_polygon_option = back_arrow()
@@ -497,7 +521,7 @@ while True:
     # TO CREATE MAC DISPLAY NAME IN THE CASE OF NO USERNAME...
     anonymous_username = pyg.display.set_caption("Anonymous {}'s Snake Game".format(round_animal_name))
                                                  
-    TEST_BOARD_COLOR = 'PURPLE' # PLACEHOLDER ... supposed to be 'board_color'
+    board_color = 'PURPLE' # !! PLACEHOLDER !! ... supposed to be 'board_color'
     snake_color = 'BLUE' # TEST_SNAKE_COLOR
     pellet_color = 'RED' #TEST_PELLET_COLOR
 
@@ -522,8 +546,8 @@ while True:
     board_colors = [['red','tomato'],['chocolate','orange'],['gold','yellow'],
         ['green','limegreen'],['blue','royalblue'],['darkviolet','mediumorchid']]
     
-    board_color_1 = board_colors[color_options.index(TEST_BOARD_COLOR)][0]
-    board_color_2 = board_colors[color_options.index(TEST_BOARD_COLOR)][1]
+    board_color_1 = board_colors[color_options.index(board_color)][0]
+    board_color_2 = board_colors[color_options.index(board_color)][1]
     
     
     while game_screen:
@@ -546,17 +570,11 @@ while True:
         # ?? the options will be to either 1. quit the game and go to the option screen ....
 
         # SCREEN TITLE...
-        game_title_font = pyg.font.Font(None,50)
-        game_title = game_title_font.render("!~SNAKE GAME~!", True, gen_col)
-        game_title_height = 46
-        game_title_rect = game_title.get_rect(center=(width//2,game_title_height))
-        screen.blit(game_title, game_title_rect)
-
+        print_text(50, "!~SNAKE GAME~!", (width//2,46))
 
         # TO DRAW THE ARRAY... 
         draw_array(board_color_1,board_color_2)
 
-        
         # TO DRAW THE SNAKE...
         snake_segments.pop()
 
@@ -625,7 +643,7 @@ while True:
     # 3. (settings?)
     # 4. high score: 
 
-    pellet_counter = 17
+    pellet_counter = 17   #!! PLACEHOLDER !!
     pellet_counter_history.append(pellet_counter)
 
     while end_screen:
@@ -636,38 +654,28 @@ while True:
         back_arrow()
         back_arrow_polygon_option = back_arrow()
 
-        '''
-        # this is a text layout example!!!
-        title_font = pyg.font.Font(None,80)
-        title_height = height//2-20
-        title_title = title_font.render("testing! testing!", True, gen_col)
-        title_rect = title_title.get_rect(center=(width//2, title_height))
-        screen.blit(title_title, title_rect)
-        # this is a text layout example!!!
-        '''
+        draw_end_screen_pellet(pellet_color)
+        draw_end_screen_dec_box(board_color)
 
         # TO PRINT PELLET ROUND INFORMATION...
-        num_of_pellets = pellet_counter
-        num_font = pyg.font.Font(None, 50)
-        pellet_font = pyg.font.Font(None, 30)
+        print_text(50, str(pellet_counter), (width // 2 - 25, height // 2 - 100))
+        print_text(30, "PELLETS", (width // 2 + 45, height // 2 - 100))
 
-        num_box_height = height // 2 - 100
-        num_info = num_font.render(str(pellet_counter), True, gen_col)
-        pellet_word = pellet_font.render("PELLETS", True, gen_col)
-        num_rect = num_info.get_rect(center=(width // 2 - 10, num_box_height))
-        pellet_rect = pellet_word.get_rect(center=(width // 2 + 60, num_box_height))
-        screen.blit(num_info, num_rect)
-        screen.blit(pellet_word, pellet_rect)
+        # TO PRINT HIGH SCORE WORD...
+        print_text(50, "High Score: ", (width//2 - 25, height//2-20))
 
 
-        # TO PRINT HIGH SCORE INFORMATION...
+        # TO PRINT HIGH SCORE INFORMATION... 
+        #       ?? should i prepare for a printing difference between 2/3 dig numbers?
+        highscore = max(pellet_counter_history)
+        print_text(57, str(highscore), (width//2 + 100, height//2-20))
 
 
 
-        #high_score = max(pellet_counter_history)
-        #if (high_score == pellet_counter):
-
+        # !! PLAY AGAIN??? !!
         # TO ASK USER IF THEY WANT TO PLAY AGAIN...
+
+
 
         # EVENTS CATCHER...
         for event in pyg.event.get():
