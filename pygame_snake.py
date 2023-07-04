@@ -26,8 +26,8 @@ clock = pyg.time.Clock()
 # INITIALIZING SCREENS...
 title_screen = False
 option_screen = False
-game_screen = False
-end_screen = True 
+game_screen = True
+end_screen = False
 
 # TO CREATE MAC DISPLAY NAME IN THE CASE OF NO USERNAME...
 round_animal_name = rand.choice(['Fox','Robin','Chipmunk','Squirrel','Deer'])
@@ -42,6 +42,10 @@ num_cols = row_span//square_size
 board_x = (width-(num_cols*square_size))/2
 board_y = 78
 
+# TO INSTANTIATE PELLET PROPERTIES...
+pellet_x, pellet_y = 0, 0
+pellet_counter = 0
+pellet_counter_history = []
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 # FUNCTIONS THAT RELATE THE SCREENS...
@@ -66,6 +70,34 @@ def draw_arrow(arrow_type):
         screen.blit(polygon_surface, (0, 0))
     return arrow_vertices
     
+def draw_game_control_buttons(button_type):
+    dilation = 5
+    x, y = 120, 2
+    if (button_type == 'pause'):
+        button_1_vertices = list(dilation*np.array([(x, y),(x+2, y),(x+2, y+6),(x, y+6)]))
+        button_2_vertices = list(dilation*np.array([(x+3, y),(x+5, y),(x+5, y+6),(x+3, y+6)]))
+        pyg.draw.polygon(screen, gen_col, button_1_vertices, width=2)
+        pyg.draw.polygon(screen, gen_col, button_2_vertices, width=2)
+
+        if is_inside_shape(mouse_pos, button_1_vertices) or is_inside_shape(mouse_pos, button_2_vertices):
+            polygon_surface = pyg.Surface((width,height), pyg.SRCALPHA)
+            pyg.draw.polygon(polygon_surface, 'red', button_1_vertices)
+            pyg.draw.polygon(polygon_surface, 'red', button_2_vertices)
+            screen.blit(polygon_surface, (0, 0))
+
+
+    if (button_type == 'play'):
+        button_vertices = list(dilation*np.array([(x, y+0.5),(x, y+5.5),(x+5, y+3)]))
+        pyg.draw.polygon(screen, 'green', button_vertices, width=2)
+
+        # TO ENABLE HOVER COLOR...
+        if is_inside_shape(mouse_pos, button_vertices):
+            polygon_surface = pyg.Surface((width,height), pyg.SRCALPHA)
+            pyg.draw.polygon(polygon_surface, 'green', button_vertices)
+            screen.blit(polygon_surface, (0, 0))
+
+        return button_vertices
+
 
 def is_inside_shape(point,arrow_vertices):
     x, y = point
@@ -230,8 +262,7 @@ def get_pellet_rect():
     pellet_rect = pyg.Rect(pellet_x, pellet_y, square_size, square_size)
     return pellet_rect
 
-pellet_x = 0
-pellet_y = 0
+# ?? HOW TO MAKE SURE THAT A PELLET DOESNST SPAWN ON THE SNAKE? ??
 def draw_pellet(pellet_color,respawn=False):
     global pellet_x, pellet_y, board_x, board_y, pellet_rect
 
@@ -248,8 +279,6 @@ def draw_pellet(pellet_color,respawn=False):
     pyg.draw.line(screen, 'black', (pellet_x, pellet_y+square_size), (pellet_x,pellet_y), width=1)
     pyg.draw.rect(screen, pellet_color, pellet_rect)
 
-pellet_counter = 0
-pellet_counter_history = []
 
 def pellet_tracker(snake_segments, pellet_color):
     global pellet_counter
@@ -265,9 +294,7 @@ def pellet_tracker(snake_segments, pellet_color):
         draw_pellet(pellet_color, True)
         
         add_snake_segment(snake_segments)
-        # ?? ADD A NEW SNAKE SEGMENT ONTO THE END ??
-
-        # !! IF YOU COLLIDE YOU LOSE 5 PELLETS & IF YOU REACH 0 YOU AUTOMATICALLY LOSE !!
+    
     return pellet_counter
 
 
@@ -305,6 +332,7 @@ def draw_border_lines():
 
 def check_snake_collision(snake_segments):
     global game_screen, end_screen
+    global pellet_counter
     x, y = snake_segments[0]
     snake_head_rect = pyg.Rect(x, y, square_size, square_size)
 
@@ -319,7 +347,11 @@ def check_snake_collision(snake_segments):
         x, y = segment[0], segment[1]
         segment_rect = pyg.Rect(x, y, square_size, square_size)
         if snake_head_rect.colliderect(segment_rect):
-            blink_array(self_collision=True)
+            pellet_counter -= 5
+            if (pellet_counter <= 0):
+                pellet_counter = 0
+                blink_array(self_collision=True)
+                end_screen, game_screen = True, False
 
 
 def draw_end_screen_dec_box(board_color):
@@ -523,15 +555,15 @@ while True:
     snake_length = snake_box_length * square_size
     snake_width = square_size
 
-    snake_x = board_x + (10 * square_size)
-    snake_y = board_y + (10 * square_size)
+    snake_x = board_x+(10*square_size)
+    snake_y = board_y+(10*square_size)
     snake_direction = 'right'
     snake_segments = []
 
     for square in range(snake_box_length):
-        segment_x = snake_x - (snake_box_length - square) * square_size
+        segment_x = snake_x-(snake_box_length-square)*square_size
         segment_y = snake_y
-        snake_segments.append((segment_x, segment_y))
+        snake_segments.append((segment_x,segment_y))
 
     snake_segments = snake_segments[::-1]
 
@@ -557,17 +589,22 @@ while True:
 
         # TO CREATE SCREEN BUTTONS / SCREEN TITLE / ARRAY / SNAKE...
         back_arrow_polygon_option = draw_arrow('backward')
-        print_center_text(50, "SNAKE GAME...", (width//2-125,46))
+        print_center_text(50, "SNAKE GAME...", (width//2-118,54))
         draw_array(board_color_1,board_color_2)
+        draw_border_lines()
         snake_segments.pop()
+
 
         pellet_counter = pellet_tracker(snake_segments, pellet_color)
         if (len(str(pellet_counter)) == 1):
-            print_center_text(38, str(pellet_counter), (width//2+155,51))
+            print_center_text(38, str(pellet_counter), (width//2+155,59))
         elif (len(str(pellet_counter)) == 2):
-            print_center_text(38, str(pellet_counter), (width//2+150,50))
-        print_center_text(25, "PELLETS", (width//2+210,52))
+            print_center_text(38, str(pellet_counter), (width//2+150,59))
+        print_center_text(25, "PELLETS", (width//2+210,60))
 
+
+        # once you click on this shape your entire screen gets a little darker and the shape itself
+        # changes into that play triangle ** 
 
         # EVENTS CATCHER...
         for event in pyg.event.get():
@@ -576,9 +613,6 @@ while True:
             # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
             elif (event.type == MOUSEBUTTONDOWN) and (event.button == 1):
                 if is_inside_shape(mouse_pos, back_arrow_polygon_option):
-                # 1. 'are you sure you wanna quit the game?' y/n
-                #   (and it PAUSES YOUR GAME)
-                # 2. 
                     option_screen, game_screen = True, False
                     break
             
@@ -605,27 +639,23 @@ while True:
         elif (snake_direction == 'right'):
             new_segment_x = snake_segments[0][0]+square_size
             new_segment_y = snake_segments[0][1]
-
         snake_segments.insert(0, (new_segment_x,new_segment_y))
 
         draw_snake(snake_segments)
         draw_pellet(pellet_color)
-        draw_border_lines()
         check_snake_collision(snake_segments)
-
+        #draw_game_control_buttons('play')
+        draw_game_control_buttons('pause')
         pyg.display.flip()
 
         # ?? maybe the snake itself can be rounded at its head / tail? .. take up 1/2 box
-
-        # ?? WE HAVE TO RANDOMIZE WHERE THE FIRST PELLET GOES AND WHERE THEY GO!
-        #   THEY JUST CAN'T SPAWN ON TOP OF THE SNAKE
 
         # ?? HOW TO DO A PAUSE BUTTON ??
 
 #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     pellet_counter_history.append(pellet_counter)
-    pellet_counter_history = pellet_counter_history + [99]
+
     while end_screen:
         screen.fill('black')
         mouse_pos = pyg.mouse.get_pos()
@@ -644,7 +674,7 @@ while True:
         else: 
             print_center_text(50, str(pellet_counter), (width//2-25,height//2-100))
             print_center_text(30, "PELLETS", (width//2+45,height//2-100))
-            
+
         if max(pellet_counter_history) >= 100:
             print_center_text(57, str(max(pellet_counter_history)), (width//2+105,height//2-24))
             print_center_text(50, "High Score: ", (width//2-33,height//2-24))
@@ -668,8 +698,6 @@ while True:
                 # WHAT HAPPENS IF BACK-BUTTON IS PRESSED...
                 if is_inside_shape(mouse_pos, back_arrow_polygon_option):
                     game_screen, end_screen = True, False
-                    # ?? THIS IS WHERE YOU'RE HAD TO PRESENT THE RESULTS OF THE 
-                    #   LAST GAME AND CAPTURE THAT MEMORY SOMEHOW... ??
                     break
                 elif is_inside_shape(mouse_pos, play_again_vertices):
                     option_screen, end_screen = True, False
@@ -677,4 +705,4 @@ while True:
 
         pyg.display.flip()
 
-pyg.quit() 
+pyg.quit() # ?? should this be tabbed in one? ?? 
